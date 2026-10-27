@@ -4,10 +4,15 @@ import { api, uploadFile } from '../../api/client'
 import FilePicker from '../../components/FilePicker'
 import { ShareToggle } from '../../components/access'
 import { Alert, Field, KycBadge, LengthHint, PageHeader, ProgressBar, Spinner } from '../../components/ui'
-import { CATEGORIES, categoryLabel } from '../../lib/constants'
+import { CATEGORIES, OFFICER_UNIT, categoryLabel } from '../../lib/constants'
 
-const STEPS = ['Jenis insiden', 'Kronologi', 'Bukti', 'Kirim']
-const today = new Date().toISOString().slice(0, 10)
+const STEPS = ['Jenis kejadian', 'Kronologi', 'Bukti', 'Kirim']
+
+// Local date as YYYY-MM-DD (toISOString() is UTC, which is still "yesterday" before 07:00 WIB)
+function localToday() {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
 
 export default function NewReport() {
   const navigate = useNavigate()
@@ -145,29 +150,32 @@ export default function NewReport() {
               ))}
             </div>
             <Field label="Tanggal kejadian (opsional)">
-              <input type="date" className="input max-w-xs" max={today} value={form.incident_date} onChange={set('incident_date')} />
+              <input type="date" className="input max-w-xs" max={localToday()} value={form.incident_date} onChange={set('incident_date')} />
             </Field>
           </>
         )}
 
         {step === 1 && (
           <>
-            <Alert kind="warn">Jangan menulis kata sandi, PIN, atau kode OTP Anda di formulir ini.</Alert>
+            <Alert kind="info">
+              Tulis sebatas yang Anda nyaman. Anda tidak wajib menceritakan detail yang membuat Anda tidak nyaman, dan
+              informasi bisa ditambahkan nanti lewat pesan kepada petugas.
+            </Alert>
             <Field label="Judul singkat">
-              <input className="input" maxLength={120} placeholder="Contoh: SMS hadiah undian berisi tautan login bank" value={form.title} onChange={set('title')} />
+              <input className="input" maxLength={120} placeholder="Contoh: Pesan bernada seksual dari senior di grup kelas" value={form.title} onChange={set('title')} />
               <LengthHint value={form.title} min={5} max={120} />
             </Field>
             <Field label="Kronologi">
-              <textarea className="input min-h-40" maxLength={5000} placeholder="Apa yang terjadi, kapan, dan apa yang sudah Anda lakukan." value={form.chronology} onChange={set('chronology')} />
+              <textarea className="input min-h-40" maxLength={5000} placeholder="Apa yang terjadi, kapan, di mana, dan siapa yang terlibat." value={form.chronology} onChange={set('chronology')} />
               <LengthHint value={form.chronology} min={20} max={5000} />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="URL / alamat email / nomor pengirim (opsional)">
-                <input className="input" maxLength={2048} placeholder="http://contoh-palsu.xyz" value={form.incident_url} onChange={set('incident_url')} />
+              <Field label="Tautan unggahan / lokasi kejadian (opsional)">
+                <input className="input" maxLength={2048} placeholder="https://instagram.com/p/… atau Gedung C lt. 2" value={form.incident_url} onChange={set('incident_url')} />
                 <LengthHint value={form.incident_url} max={2048} />
               </Field>
-              <Field label="Rekening / akun pelaku (opsional)">
-                <input className="input" maxLength={200} placeholder="Bank ABC 1234567890" value={form.scammer_account} onChange={set('scammer_account')} />
+              <Field label="Pelaku (opsional)">
+                <input className="input" maxLength={200} placeholder="Nama, NIM, atau akun media sosial" value={form.scammer_account} onChange={set('scammer_account')} />
                 <LengthHint value={form.scammer_account} max={200} />
               </Field>
             </div>
@@ -176,10 +184,10 @@ export default function NewReport() {
 
         {step === 2 && (
           <>
-            <Field label="Dokumen bukti" hint="Tangkapan email (.eml), mutasi rekening, invoice palsu, dll.">
+            <Field label="Dokumen bukti" hint="Tangkapan layar percakapan, kronologi tertulis, surat keterangan medis/visum, dll.">
               <FilePicker kind="dokumen" files={docs} onChange={setDocs} onError={setError} extra={shareExtra} />
             </Field>
-            <Field label="Video bukti" hint="Rekaman layar percakapan atau video call penipu.">
+            <Field label="Video bukti" hint="Rekaman kejadian, atau rekaman layar percakapan/unggahan.">
               <FilePicker kind="video" files={videos} onChange={setVideos} onError={setError} extra={shareExtra} />
             </Field>
           </>
@@ -206,7 +214,7 @@ export default function NewReport() {
             <label className="flex gap-3 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
               <input type="checkbox" className="mt-0.5" checked={form.consent} onChange={set('consent')} />
               <span>
-                Saya menyetujui isi laporan (kronologi, URL, dan akun pelaku) dibaca petugas CSIRT untuk penanganan.
+                Saya menyetujui isi laporan (kronologi, tautan/lokasi, dan identitas pelaku) dibaca petugas {OFFICER_UNIT} untuk penanganan.
                 Identitas saya ditampilkan tersamar kepada petugas. File yang saya izinkan dapat dilihat petugas
                 (tanpa diunduh) sampai laporan ditutup, dan izin itu dapat saya cabut kapan saja.
               </span>

@@ -88,14 +88,15 @@ export default function ReportDetail() {
       for (let i = 0; i < queue.length; i++) {
         const [kind, file] = queue[i]
         await uploadFile(`/reports/${id}/attachments`, { kind, file, share: String(shareNew) }, (v) => setUpProgress((i + v) / queue.length))
+        // Drop each stored file at once, so a later failure cannot make a retry upload it twice
+        const drop = kind === 'dokumen' ? setNewDocs : setNewVideos
+        drop((list) => list.filter((f) => f !== file))
       }
-      setNewDocs([])
-      setNewVideos([])
-      load()
     } catch (e) {
       setError(e.message)
     } finally {
       setUpProgress(null)
+      load() // show what was stored, even after a partial failure
     }
   }
 
@@ -125,8 +126,8 @@ export default function ReportDetail() {
             <h2 className="font-semibold text-slate-900">Isi laporan</h2>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
               <div><dt className="text-slate-500">Tanggal kejadian</dt><dd>{formatDate(report.incident_date, false)}</dd></div>
-              <div><dt className="text-slate-500">URL / pengirim</dt><dd className="break-all">{report.incident_url || '–'}</dd></div>
-              <div><dt className="text-slate-500">Rekening / akun pelaku</dt><dd>{report.scammer_account || '–'}</dd></div>
+              <div><dt className="text-slate-500">Tautan / lokasi kejadian</dt><dd className="break-all">{report.incident_url || '–'}</dd></div>
+              <div><dt className="text-slate-500">Pelaku</dt><dd>{report.scammer_account || '–'}</dd></div>
             </dl>
             <div>
               <div className="text-sm text-slate-500">Kronologi</div>
