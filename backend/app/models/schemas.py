@@ -1,16 +1,25 @@
 from typing import Any, Optional
 from pydantic import BaseModel, Field
+from enum import Enum
 
+class caseStatus(str, Enum):
+    OPEN = "OPEN"
+    INVESTIGATING = "INVESTIGATING"
+    CLOSED = "CLOSED"
 
-# ==========================================
-# 1. CRYPTO SCHEMAS
-# ==========================================
+class cipherAlgorithm(str, Enum):
+    AES = "AES"
+    DES = "DES"
+    RC4 = "RC4"
+
+class cipherMode(str, Enum):
+    CTR = "CTR"
 
 class EncryptTextRequest(BaseModel):
     text: str = Field(..., description="Plaintext to encrypt")
     password: str = Field(..., min_length=1, description="Secret password for encryption")
-    algorithm: str = Field("AES", description="Cipher algorithm: AES, DES, or RC4")
-    mode: str = Field("CBC", description="Cipher mode for AES/DES: CBC, CTR, OFB, CFB")
+    algorithm: cipherAlgorithm = Field(default=cipherAlgorithm.AES, description="Cipher algorithm: AES, DES, or RC4")
+    mode: cipherMode = Field(default=cipherMode.CTR, description="Cipher mode: CTR")
     name: str = Field("text.txt", description="Filename or label for the encrypted content")
 
 
@@ -29,11 +38,6 @@ class DecryptResponse(BaseModel):
     original_name: str
     plaintext: str
 
-
-# ==========================================
-# 2. AUTH SCHEMAS (REGISTER & LOGIN)
-# ==========================================
-
 class UserAuthRequest(BaseModel):
     username: str = Field(
         ...,
@@ -44,6 +48,7 @@ class UserAuthRequest(BaseModel):
     password: str = Field(
         ...,
         min_length=8,
+        max_length=128,
         description="Password minimal 8 karakter",
     )
 
@@ -60,4 +65,20 @@ class UserProfileResponse(BaseModel):
     id: int
     username: str
     role: str = "user"
+    created_at: str
+
+class CaseCreateRequest(BaseModel):
+    title: str = Field(..., min_length=3, max_length=120, description="Judul kasus insiden siber")
+    description: Optional[str] = Field("", description="Deskripsi kronologi kasus")
+    status: Optional[caseStatus] = Field("OPEN", description="Status kasus")
+
+
+class CaseResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = ""
+    status: caseStatus
+    created_by: Optional[int] = None
+    creator: Optional[str] = None
+    evidence_count: Optional[int] = 0
     created_at: str

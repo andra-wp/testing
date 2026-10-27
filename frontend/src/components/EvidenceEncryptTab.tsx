@@ -16,7 +16,7 @@ export const EvidenceEncryptTab: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [incidentNotes, setIncidentNotes] = useState('');
   const [algorithm, setAlgorithm] = useState<CryptoAlgorithm>('AES');
-  const [cipherMode, setCipherMode] = useState<BlockCipherMode>('CBC');
+  const cipherMode: BlockCipherMode = 'CTR';
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -215,16 +215,10 @@ export const EvidenceEncryptTab: React.FC = () => {
                 <div>
                   <label className="hint block mt-0 mb-1">Mode</label>
                   {algorithm === 'AES' || algorithm === 'DES' ? (
-                    <select
-                      value={cipherMode}
-                      onChange={(e) => setCipherMode(e.target.value as BlockCipherMode)}
-                      className="input font-mono cursor-pointer"
-                    >
-                      <option value="CBC">CBC</option>
-                      <option value="CTR">CTR</option>
-                      <option value="OFB">OFB</option>
-                      <option value="CFB">CFB</option>
-                    </select>
+                    <div className="input font-mono bg-surface flex items-center justify-between">
+                      <span className="text-brand font-semibold">CTR</span>
+                      <span className="text-xs text-ink-muted font-sans">Counter</span>
+                    </div>
                   ) : (
                     <div className="input font-mono bg-surface text-ink-disabled">Stream</div>
                   )}
@@ -315,6 +309,14 @@ export const EvidenceEncryptTab: React.FC = () => {
                   <div className="px-4 py-3 flex justify-between items-center gap-4">
                     <span className="text-ink-muted">IV</span>
                     <span className="font-mono text-[13px] text-ink truncate max-w-[170px]">{envelopeResult.envelope.iv}</span>
+                  </div>
+                )}
+                {envelopeResult.envelope.mac && (
+                  <div className="px-4 py-3 flex justify-between items-center gap-4">
+                    <span className="text-ink-muted">Integritas (MAC)</span>
+                    <span className="font-mono text-[13px] text-brand truncate max-w-[170px]" title={envelopeResult.envelope.mac}>
+                      {envelopeResult.envelope.mac.slice(0, 16)}...
+                    </span>
                   </div>
                 )}
                 <div className="px-4 py-3 flex justify-between items-center gap-4">

@@ -1,34 +1,12 @@
 import sqlite3
 from typing import Any, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from app.models.database import create_user, get_user_by_username
+from app.models.user import create_user, get_user_by_username
 from app.models.schemas import AuthResponse, UserAuthRequest, UserProfileResponse
 from app.utils.security import generate_salt, generate_token, hash_password, verify_password
+from app.dependencies import SESSIONS, get_current_user
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
-
-SESSIONS: dict[str, dict[str, Any]] = {}
-
-
-def get_current_user(authorization: Optional[str] = Header(None)) -> dict[str, Any]:
-    """Dependency untuk memeriksa apakah token sesi user valid."""
-    if not authorization:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Header otentikasi tidak ditemukan. Silakan login terlebih dahulu.",
-        )
-
-    # Format header: "Bearer <token>" atau langsung "<token>"
-    parts = authorization.split(" ")
-    token = parts[1] if len(parts) == 2 and parts[0].lower() == "bearer" else parts[0]
-
-    session_data = SESSIONS.get(token)
-    if not session_data:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sesi login tidak valid atau sudah kedaluwarsa.",
-        )
-    return session_data
 
 
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)

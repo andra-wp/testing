@@ -8,7 +8,7 @@ export const QuickTextTab: React.FC = () => {
   const [plainText, setPlainText] = useState('');
   const [encPassword, setEncPassword] = useState('');
   const [encAlgorithm, setEncAlgorithm] = useState<CryptoAlgorithm>('AES');
-  const [encCipherMode, setEncCipherMode] = useState<BlockCipherMode>('CBC');
+  const encCipherMode: BlockCipherMode = 'CTR';
   const [encryptedEnvelope, setEncryptedEnvelope] = useState<CryptoEnvelope | null>(null);
   const [encLoading, setEncLoading] = useState(false);
   const [encError, setEncError] = useState<string | null>(null);
@@ -118,16 +118,7 @@ export const QuickTextTab: React.FC = () => {
               {encAlgorithm === 'AES' || encAlgorithm === 'DES' ? (
                 <div>
                   <label className="label">Mode {encAlgorithm}</label>
-                  <select
-                    value={encCipherMode}
-                    onChange={(e) => setEncCipherMode(e.target.value as BlockCipherMode)}
-                    className="input font-mono cursor-pointer"
-                  >
-                    <option value="CBC">CBC</option>
-                    <option value="CTR">CTR</option>
-                    <option value="OFB">OFB</option>
-                    <option value="CFB">CFB</option>
-                  </select>
+                  <div className="input font-mono bg-surface text-brand font-semibold">CTR</div>
                 </div>
               ) : (
                 <div className="hidden sm:block"></div>
@@ -157,7 +148,7 @@ export const QuickTextTab: React.FC = () => {
           <div className="mt-6 pt-4 border-t border-line space-y-2 animate-fade-in">
             <div className="flex items-center justify-between">
               <span className="text-sm text-ink-muted font-mono">
-                Envelope ({encryptedEnvelope.algorithm}-{encryptedEnvelope.mode || 'CBC'}):
+                Envelope ({encryptedEnvelope.algorithm}-{encryptedEnvelope.mode || 'CTR'}):
               </span>
               <button
                 type="button"

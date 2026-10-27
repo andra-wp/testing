@@ -7,7 +7,7 @@ export type EvidenceCategory =
 
 export type CryptoAlgorithm = 'AES' | 'DES' | 'RC4';
 
-export type BlockCipherMode = 'CBC' | 'CTR' | 'OFB' | 'CFB';
+export type BlockCipherMode = 'CTR';
 export type AESMode = BlockCipherMode;
 
 export interface CryptoEnvelope {
@@ -18,6 +18,7 @@ export interface CryptoEnvelope {
   ciphertext: string;
   iv?: string;
   nonce?: string;
+  mac?: string;
   notes?: string;
   category?: string;
   [key: string]: unknown;
@@ -51,7 +52,13 @@ export interface EvidenceReport {
   filename: string;
   algorithm: string;
   mode: string;
-  notes: string;
+  notes?: string;
   filesize: number;
   created_at: string;
+}
+
+export interface AdminStatsResponse {
+  total_reports: number;
+  total_users: number;
+  categories: Record<string, number>;
 }
