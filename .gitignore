@@ -12,3 +12,7 @@ venv/
 # node
 frontend/node_modules/
 frontend/dist/
+
+# editor & alat uji
+.vscode/
+.playwright-mcp/
