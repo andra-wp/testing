@@ -39,7 +39,7 @@ def setup(client):
     o2 = make_officer(client, "sari@csirt.local", "Sari Petugas")
     owner, _ = verified_pelapor(client, o1, "citra@example.com", "3201010101010009", name="Citra Lestari")
     rid = client.post("/api/reports", headers=owner, json={
-        "category": "penipuan_online", "title": "Penipuan jual beli HP",
+        "category": "perundungan", "title": "Penipuan jual beli HP",
         "chronology": "Saya mentransfer uang tetapi barang tidak pernah dikirim oleh penjual.",
         "consent": True}).json()["id"]
 

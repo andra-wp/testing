@@ -4,13 +4,15 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 NIK_RE = re.compile(r"^\d{16}$")
 PHONE_RE = re.compile(r"^(\+62|62|0)8\d{7,12}$")
 
+# Kept in sync with CATEGORIES in frontend/src/lib/constants.js
 CATEGORIES = {
-    "phishing_email": "Phishing lewat email",
-    "phishing_sms": "Phishing lewat SMS/WhatsApp",
-    "phishing_web": "Situs palsu (phishing web)",
-    "penipuan_online": "Penipuan transaksi online",
-    "peretasan_akun": "Peretasan akun",
-    "malware": "Malware / ransomware",
+    "kekerasan_seksual": "Kekerasan seksual",
+    "pelecehan_seksual": "Pelecehan seksual verbal/nonfisik",
+    "kbgo": "Kekerasan berbasis gender online (KBGO)",
+    "perundungan": "Perundungan (bullying)",
+    "perundungan_siber": "Perundungan siber (cyberbullying)",
+    "kekerasan_fisik": "Kekerasan fisik",
+    "kekerasan_psikis": "Kekerasan psikis",
     "lainnya": "Lainnya",
 }
 
@@ -33,6 +35,10 @@ KIND_RULES = {
     "dokumen": {
         "max_mb": 25,
         "exts": {
+            # chat screenshots are the most common evidence of (cyber)bullying and harassment
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
             ".pdf": "application/pdf",
             ".docx": _DOCX + "wordprocessingml.document",
             ".xlsx": _DOCX + "spreadsheetml.sheet",

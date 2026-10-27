@@ -4,6 +4,7 @@ import { api } from '../api/client'
 import AuthShell from '../components/AuthShell'
 import { Alert, Field, LengthHint } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
+import { OFFICER_UNIT } from '../lib/constants'
 
 const EMPTY = { full_name: '', email: '', nik: '', phone: '', password: '', password2: '', consent: false }
 
@@ -79,7 +80,7 @@ export default function Register() {
           <input type="checkbox" className="mt-0.5" checked={form.consent} onChange={set('consent')} required />
           <span>
             Saya menyetujui pemrosesan data pribadi saya (nama, NIK, nomor HP, email, scan KTP, dan bukti laporan) oleh
-            CSIRT untuk verifikasi dan penanganan laporan, sesuai UU No. 27 Tahun 2022. Saya dapat mengunduh atau
+            {` ${OFFICER_UNIT} `}kampus untuk verifikasi dan penanganan laporan, sesuai UU No. 27 Tahun 2022. Saya dapat mengunduh atau
             menghapus data saya kapan saja.
           </span>
         </label>

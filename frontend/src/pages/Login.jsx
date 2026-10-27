@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import AuthShell from '../components/AuthShell'
 import { Alert, Field } from '../components/ui'
 import { useAuth } from '../context/AuthContext'
+import { OFFICER_UNIT } from '../lib/constants'
 
 export default function Login() {
   const { user, login } = useAuth()
@@ -28,7 +29,7 @@ export default function Login() {
   }
 
   return (
-    <AuthShell title="Masuk" subtitle="Untuk pelapor dan petugas CSIRT.">
+    <AuthShell title="Masuk" subtitle={`Untuk pelapor dan petugas ${OFFICER_UNIT}.`}>
       <form onSubmit={submit} className="card space-y-4 p-6">
         <Alert>{error}</Alert>
         <Field label="Email">

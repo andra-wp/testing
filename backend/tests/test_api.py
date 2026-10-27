@@ -32,7 +32,7 @@ def test_full_flow(client):
 
     # laporan + lampiran
     r = client.post("/api/reports", headers=alice, json={
-        "category": "phishing_web", "title": "Situs bank palsu",
+        "category": "perundungan_siber", "title": "Situs bank palsu",
         "chronology": "Saya menerima SMS berisi tautan ke situs mirip bank X lalu login.",
         "incident_url": "http://bank-x-login.example", "scammer_account": "BCA 1234567890",
         "consent": True})

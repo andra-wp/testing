@@ -120,7 +120,7 @@ export default function VerifyDetail() {
               </p>
               <textarea
                 className="input min-h-20"
-                placeholder="Alasan (dibaca pelapor), mis. nama di KTP berbeda dengan pemilik rekening pada bukti mutasi"
+                placeholder="Alasan (dibaca pelapor), mis. nama di KTP berbeda dengan nama pada bukti yang dilampirkan"
                 maxLength={1000}
                 value={flagReason}
                 onChange={(e) => setFlagReason(e.target.value)}

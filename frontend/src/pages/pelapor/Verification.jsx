@@ -5,6 +5,7 @@ import FilePicker from '../../components/FilePicker'
 import KycHistory from '../../components/KycHistory'
 import VerifyResult from '../../components/VerifyResult'
 import { Alert, Field, KycBadge, PageHeader, ProgressBar, Spinner } from '../../components/ui'
+import { OFFICER_UNIT } from '../../lib/constants'
 import { formatBytes, formatDate } from '../../lib/format'
 
 const EXPLAIN = {
@@ -97,7 +98,7 @@ export default function Verification() {
             {needUpload ? 'Ajukan verifikasi' : 'Ganti & ajukan ulang'}
           </button>
           <p className="text-xs leading-relaxed text-slate-500">
-            KTP dienkripsi dan hanya Anda yang dapat mengunduhnya. Petugas CSIRT hanya dapat melihat pratinjaunya
+            KTP dienkripsi dan hanya Anda yang dapat mengunduhnya. Petugas {OFFICER_UNIT} hanya dapat melihat pratinjaunya
             selama status <i>menunggu verifikasi</i> untuk mencocokkan nama dan NIK dengan data pendaftaran.
             Setelah diputuskan, akses petugas tertutup.
           </p>

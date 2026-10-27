@@ -67,13 +67,13 @@ export default function CaseDetail() {
       <div className="mt-4 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <section className="card space-y-4 p-5">
-            <h2 className="font-semibold">Indikator</h2>
+            <h2 className="font-semibold">Detail kejadian</h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-2">
-              {[['URL / pengirim', 'incident_url'], ['Rekening / akun pelaku', 'scammer_account']].map(([label, k]) => (
+              {[['Tautan / lokasi kejadian', 'incident_url'], ['Pelaku', 'scammer_account']].map(([label, k]) => (
                 <div key={k}>
                   <dt className="text-slate-500">{label}</dt>
                   <dd className="mt-0.5 flex items-start gap-2">
-                    <code className="rounded bg-red-50 px-1.5 py-0.5 text-xs break-all text-red-800">{c[k] || '–'}</code>
+                    <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs break-all text-slate-800">{c[k] || '–'}</code>
                     {c[k] && (
                       <button className="text-xs text-brand-700 hover:underline" onClick={() => copy(c[k], k)}>
                         {copied === k ? 'tersalin' : 'salin'}
@@ -84,7 +84,7 @@ export default function CaseDetail() {
               ))}
               <div><dt className="text-slate-500">Tanggal kejadian</dt><dd>{formatDate(c.incident_date, false)}</dd></div>
             </dl>
-            <p className="text-xs text-slate-500">URL ditampilkan sebagai teks dan tidak bisa diklik, agar petugas tidak membuka situs phishing tanpa sengaja.</p>
+            <p className="text-xs text-slate-500">Tautan ditampilkan sebagai teks dan tidak bisa diklik, agar petugas tidak membuka atau ikut menyebarkan konten berbahaya tanpa sengaja.</p>
           </section>
 
           <section className="card p-5">
@@ -138,7 +138,7 @@ export default function CaseDetail() {
                         >
                           <textarea
                             className="input min-h-16"
-                            placeholder="Alasan (dibaca pelapor), mis. memverifikasi nomor rekening penerima untuk surat blokir ke bank"
+                            placeholder="Alasan (dibaca pelapor), mis. mencocokkan isi rekaman dengan kronologi sebelum memanggil terlapor"
                             minLength={10}
                             maxLength={500}
                             value={reason}

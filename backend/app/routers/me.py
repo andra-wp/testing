@@ -75,7 +75,7 @@ def export(user=Depends(require_pelapor), db=Depends(get_db)):
     }
     audit.log(db, user, "me.export", "user", uid)
     db.commit()
-    return JSONResponse(payload, headers={"Content-Disposition": 'attachment; filename="data-saya-lapor-siber.json"'})
+    return JSONResponse(payload, headers={"Content-Disposition": 'attachment; filename="data-saya-lapor-aman.json"'})
 
 
 class DeleteIn(BaseModel):

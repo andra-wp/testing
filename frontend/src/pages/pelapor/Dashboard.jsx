@@ -50,7 +50,7 @@ export default function Dashboard() {
       ) : reports.length === 0 ? (
         <div className="card p-10 text-center">
           <p className="font-medium text-slate-700">Belum ada laporan.</p>
-          <p className="mt-1 text-sm text-slate-500">Menerima email, SMS, atau situs mencurigakan? Laporkan di sini.</p>
+          <p className="mt-1 text-sm text-slate-500">Mengalami atau menyaksikan kekerasan di kampus? Laporkan di sini dengan aman.</p>
           <Link to="/pelapor/lapor-baru" className="btn-primary mt-4">
             Buat laporan pertama
           </Link>

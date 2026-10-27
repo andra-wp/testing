@@ -1,11 +1,17 @@
+// App and handling-unit names shown in the UI; change here to rename everywhere
+export const APP_NAME = 'Lapor Aman'
+export const OFFICER_UNIT = 'Satgas'
+
+// Must match CATEGORIES in backend/app/validators.py (the backend rejects unknown keys)
 export const CATEGORIES = [
-  { value: 'phishing_email', label: 'Phishing lewat email', hint: 'Email palsu yang meminta login, data, atau pembayaran' },
-  { value: 'phishing_sms', label: 'Phishing lewat SMS/WhatsApp', hint: 'Pesan berisi tautan, file APK, atau permintaan OTP' },
-  { value: 'phishing_web', label: 'Situs palsu', hint: 'Situs yang meniru bank, marketplace, atau instansi' },
-  { value: 'penipuan_online', label: 'Penipuan transaksi online', hint: 'Barang tidak dikirim, investasi bodong, dll.' },
-  { value: 'peretasan_akun', label: 'Peretasan akun', hint: 'Akun email, media sosial, atau bank diambil alih' },
-  { value: 'malware', label: 'Malware / ransomware', hint: 'Perangkat terinfeksi atau file dikunci' },
-  { value: 'lainnya', label: 'Lainnya', hint: 'Insiden siber lain' },
+  { value: 'kekerasan_seksual', label: 'Kekerasan seksual', hint: 'Sentuhan, pemaksaan, atau perbuatan seksual tanpa persetujuan' },
+  { value: 'pelecehan_seksual', label: 'Pelecehan seksual verbal/nonfisik', hint: 'Komentar, siulan, gestur, atau pesan bernada seksual' },
+  { value: 'kbgo', label: 'Kekerasan berbasis gender online (KBGO)', hint: 'Penyebaran foto/video intim, sextortion, perekaman tanpa izin' },
+  { value: 'perundungan', label: 'Perundungan (bullying)', hint: 'Ejekan, pengucilan, atau intimidasi yang berulang' },
+  { value: 'perundungan_siber', label: 'Perundungan siber (cyberbullying)', hint: 'Hinaan, doxing, akun palsu, atau konten untuk mempermalukan' },
+  { value: 'kekerasan_fisik', label: 'Kekerasan fisik', hint: 'Pemukulan, penganiayaan, atau perusakan barang milik korban' },
+  { value: 'kekerasan_psikis', label: 'Kekerasan psikis', hint: 'Ancaman, pemerasan, atau perendahan martabat' },
+  { value: 'lainnya', label: 'Lainnya', hint: 'Bentuk kekerasan lain di lingkungan kampus' },
 ]
 export const categoryLabel = (v) => CATEGORIES.find((c) => c.value === v)?.label ?? v
 
@@ -27,9 +33,9 @@ export const CIPHERS = [
 export const FILE_RULES = {
   ktp: { accept: '.jpg,.jpeg,.png,.pdf', maxMb: 10, label: 'JPG, PNG, atau PDF, maks 10 MB' },
   dokumen: {
-    accept: '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.txt,.eml',
+    accept: '.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.odt,.txt,.eml',
     maxMb: 25,
-    label: 'PDF, Word, Excel, PowerPoint, TXT, atau EML, maks 25 MB',
+    label: 'Gambar (JPG/PNG), PDF, Word, Excel, PowerPoint, TXT, atau EML, maks 25 MB',
   },
   video: { accept: '.mp4,.mov,.webm,.mkv', maxMb: 200, label: 'MP4, MOV, WEBM, atau MKV, maks 200 MB' },
 }

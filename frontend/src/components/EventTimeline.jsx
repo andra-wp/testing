@@ -1,4 +1,4 @@
-import { STATUS } from '../lib/constants'
+import { OFFICER_UNIT, STATUS } from '../lib/constants'
 import { formatDate } from '../lib/format'
 
 export default function EventTimeline({ events }) {
@@ -13,7 +13,7 @@ export default function EventTimeline({ events }) {
             }`}
           />
           <div className="text-xs text-slate-500">
-            {formatDate(e.created_at)} · {e.actor_role === 'petugas' ? 'Petugas CSIRT' : 'Pelapor'}
+            {formatDate(e.created_at)} · {e.actor_role === 'petugas' ? `Petugas ${OFFICER_UNIT}` : 'Pelapor'}
           </div>
           {e.type === 'status' && (
             <div className="text-sm font-medium text-slate-800">

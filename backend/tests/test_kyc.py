@@ -8,7 +8,7 @@ from conftest import login, make_officer
 
 KTP1 = b"\xff\xd8\xff\xe0" + os.urandom(40_000)
 KTP2 = b"\x89PNG\r\n\x1a\n" + os.urandom(40_000)
-REPORT = {"category": "phishing_email", "title": "Email palsu dari bank",
+REPORT = {"category": "pelecehan_seksual", "title": "Email palsu dari bank",
           "chronology": "Saya menerima email yang meminta saya login ulang ke internet banking.", "consent": True}
 
 

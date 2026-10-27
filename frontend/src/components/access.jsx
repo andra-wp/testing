@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { api } from '../api/client'
+import { OFFICER_UNIT } from '../lib/constants'
 import { formatDate } from '../lib/format'
 
-export const SHARE_TEXT =
-  'Petugas CSIRT dapat melihat file ini (tanpa mengunduh) untuk memverifikasi dan menindaklanjuti laporan, sampai laporan ditutup. Izin bisa dicabut kapan saja.'
+export const SHARE_TEXT = `Petugas ${OFFICER_UNIT} dapat melihat file ini (tanpa mengunduh) untuk memverifikasi dan menindaklanjuti laporan, sampai laporan ditutup. Izin bisa dicabut kapan saja.`
 
 export const ACCESS_LABEL = {
   none: { text: 'Tidak dibagikan', cls: 'bg-slate-100 text-slate-600' },
