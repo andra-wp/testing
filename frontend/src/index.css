@@ -1,152 +1,118 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Page canvas, default typography and the global focus ring */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "HuaweiSans", "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+
+  --color-slate-50: #f3f3f3;
+  --color-slate-100: #eeeeee;
+  --color-slate-200: #e6e6e6;
+  --color-slate-300: #d4d4d4;
+  --color-slate-400: #aeaeae;
+  --color-slate-500: #666666;
+  --color-slate-600: #595757;
+  --color-slate-700: #333333;
+  --color-slate-800: #333333;
+  --color-slate-900: #191919;
+
+  --color-brand-50: #fdeced;
+  --color-brand-100: #f8cfd1;
+  --color-brand-600: #c7000b;
+  --color-brand-700: #c7000b;
+  --color-brand-800: #a3000a;
+  --color-brand-solid: #c7000b;
+  --color-brand-solid-hover: #e02128;
+  --color-surface: #ffffff;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 16px;
+
+  --shadow-card: 0 1px 6px 0 rgba(0, 0, 0, 0.08);
+  --shadow-hover: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
+
+  --ease-standard: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.dark {
+  color-scheme: dark;
+  --color-surface: #141414;
+
+  --color-slate-50: #000000;
+  --color-slate-100: #1f1f1f;
+  --color-slate-200: #2e2e2e;
+  --color-slate-300: #777777;
+  --color-slate-400: #8c8c8c;
+  --color-slate-500: #aeaeae;
+  --color-slate-600: #c4c4c4;
+  --color-slate-700: #dddddd;
+  --color-slate-800: #f3f3f3;
+  --color-slate-900: #ffffff;
+
+  --color-brand-50: #2b0507;
+  --color-brand-100: #4d0a0e;
+  --color-brand-600: #e7434a;
+  --color-brand-700: #f06a70;
+  --color-brand-800: #f59ca0;
+
+  --color-emerald-50: #062a20;
+  --color-emerald-200: #065f46;
+  --color-emerald-600: #10b981;
+  --color-emerald-700: #34d399;
+  --color-emerald-800: #6ee7b7;
+
+  --color-red-50: #330f12;
+  --color-red-200: #7f1d1d;
+  --color-red-700: #f87171;
+  --color-red-800: #fca5a5;
+
+  --color-amber-50: #2b1d06;
+  --color-amber-200: #78350f;
+  --color-amber-700: #fbbf24;
+  --color-amber-800: #fcd34d;
+  --color-amber-900: #fde68a;
+
+  --color-sky-50: #08233a;
+  --color-sky-200: #075985;
+  --color-sky-700: #7dd3fc;
+  --color-sky-800: #bae6fd;
+}
+
+@utility card {
+  @apply rounded-xl border border-slate-200 bg-surface shadow-card;
+}
+@utility input {
+  @apply w-full rounded-sm border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-800 transition-colors duration-200 ease-standard placeholder:text-slate-400 focus:border-brand-600;
+}
+@utility label {
+  @apply mb-1 block text-sm text-slate-700;
+}
+@utility btn {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm transition-colors duration-200 ease-standard disabled:cursor-not-allowed disabled:opacity-60;
+}
+@utility btn-primary {
+  @apply btn bg-brand-solid text-white hover:bg-brand-solid-hover;
+}
+@utility btn-secondary {
+  @apply btn border border-slate-700 bg-transparent text-slate-800 hover:border-brand-600 hover:bg-slate-900/5 hover:text-brand-700;
+}
+@utility btn-danger {
+  @apply btn border border-red-600 bg-transparent text-red-700 hover:bg-red-50;
+}
+@utility btn-sm {
+  @apply px-3 py-1.5 text-xs;
+}
+
 @layer base {
   body {
-    @apply bg-white text-ink font-sans antialiased;
+    @apply bg-slate-50 text-slate-800;
     line-height: 1.5;
   }
 
-  h1, h2, h3, h4 {
-    @apply text-ink-dark font-semibold;
-    line-height: 1.2;
-  }
-
-  /* Accessible focus state: 2px brand outline with 2px offset */
   :focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-brand;
+    outline: 2px solid var(--color-brand-600);
+    outline-offset: 2px;
   }
-}
-
-/* Reusable component styles from DESIGN-huawei-com.md */
-@layer components {
-  /* Standard card: light surface, 16px radius, shadow lifts on hover */
-  .card {
-    @apply bg-surface rounded-card shadow-card p-6 transition-shadow duration-200 ease-standard hover:shadow-hover;
-  }
-
-  /* Card heading row with bottom divider */
-  .card-header {
-    @apply flex items-center justify-between gap-4 pb-4 mb-6 border-b border-line;
-  }
-
-  .card-title {
-    @apply text-2xl font-semibold text-ink-dark;
-  }
-
-  .card-subtitle {
-    @apply mt-1 text-sm text-ink-secondary;
-  }
-
-  /* Square icon tile tinted with the brand color */
-  .icon-box {
-    @apply w-10 h-10 flex-shrink-0 rounded-btn bg-brand/10 text-brand flex items-center justify-center;
-  }
-
-  /* Primary CTA: brand red, white text */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 min-h-11 px-6 py-2.5 rounded-btn bg-brand text-white text-sm transition-colors duration-200 ease-standard hover:bg-brand-hover active:bg-brand-hover disabled:bg-brand-disabled disabled:opacity-70 disabled:cursor-not-allowed;
-  }
-
-  /* Secondary action: transparent with dark outline, turns red on hover */
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 min-h-11 px-6 py-2.5 rounded-btn border border-ink bg-transparent text-ink text-sm transition-colors duration-200 ease-standard hover:bg-ink-dark/5 hover:border-brand hover:text-brand disabled:text-ink-disabled disabled:border-ink-disabled disabled:cursor-not-allowed;
-  }
-
-  /* Ghost button: text only, red on hover */
-  .btn-ghost {
-    @apply inline-flex items-center gap-1 px-3 py-2 rounded-btn text-sm text-ink transition-colors duration-200 ease-standard hover:text-brand active:text-brand-hover disabled:text-ink-disabled disabled:cursor-not-allowed;
-  }
-
-  /* Text input, select and textarea */
-  .input {
-    @apply w-full px-3 py-2 rounded-input border border-line bg-white text-base text-ink placeholder:text-ink-placeholder transition-colors duration-200 ease-standard focus:border-brand disabled:bg-surface disabled:text-ink-disabled;
-  }
-
-  .label {
-    @apply block mb-1 text-sm text-ink;
-  }
-
-  /* Helper text under a field */
-  .hint {
-    @apply mt-1 text-xs text-ink-muted;
-  }
-
-  /* Inline status messages */
-  .alert {
-    @apply flex items-start gap-2 p-3 rounded-btn border text-sm;
-  }
-
-  .alert-error {
-    @apply border-brand/20 bg-brand/5 text-brand;
-  }
-
-  /* The reference has no success color; a muted green keeps it distinct from errors */
-  .alert-success {
-    @apply border-green-700/20 bg-green-50 text-green-800;
-  }
-
-  /* Small pill for tags and metadata */
-  .chip {
-    @apply inline-flex items-center px-2 py-1 rounded-full border border-line bg-white text-xs text-ink-secondary;
-  }
-
-  /* White block inside a card: tables, previews, output */
-  .panel {
-    @apply rounded-btn border border-line bg-white;
-  }
-
-  /* Dashed file picker */
-  .dropzone {
-    @apply flex items-center gap-3 p-3 rounded-input border border-dashed border-line bg-white cursor-pointer transition-colors duration-200 ease-standard hover:border-brand;
-  }
-
-  /* Empty-state placeholder inside a card */
-  .empty-state {
-    @apply flex-1 flex flex-col items-center justify-center text-center p-8 rounded-btn border border-dashed border-line bg-white;
-  }
-
-  /* Tab link in nav-link style: red and bold when active */
-  .tab {
-    @apply inline-flex items-center gap-2 px-3 py-3 -mb-px border-b-2 border-transparent text-sm text-ink whitespace-nowrap transition-colors duration-200 ease-standard hover:text-brand;
-  }
-
-  .tab-active {
-    @apply border-brand text-brand font-semibold;
-  }
-}
-
-/* Light minimal scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: #ffffff;
-}
-::-webkit-scrollbar-thumb {
-  background: #e6e6e6;
-  border-radius: 9999px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #aeaeae;
-}
-
-/* Page & tab fade-in transition */
-@keyframes fadeInPage {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in {
-  animation: fadeInPage 0.45s cubic-bezier(0.25, 1, 0.5, 1) both;
-  will-change: opacity, transform;
 }
