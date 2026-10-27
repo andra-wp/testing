@@ -18,10 +18,6 @@ router = APIRouter(prefix="/api/crypto", tags=["Cryptography"])
 MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024
 
 
-# ==========================================
-# 1. TEXT ENCRYPTION & DECRYPTION (JSON BODY)
-# ==========================================
-
 @router.post("/encrypt", response_model=EncryptResponse, summary="Encrypt plaintext (Login Required)")
 def encrypt_text(
     request: EncryptTextRequest,
@@ -33,7 +29,7 @@ def encrypt_text(
             data=data_bytes,
             password=request.password,
             algorithm=request.algorithm,
-            mode=request.mode,
+            mode="CTR",
             name=request.name,
         )
         envelope = json.loads(result) if isinstance(result, str) else result
@@ -74,16 +70,12 @@ def decrypt_text(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Decryption error: {exc}")
 
 
-# ==========================================
-# 2. FILE ENCRYPTION & DECRYPTION (MULTIPART)
-# ==========================================
-
 @router.post("/encrypt-file", summary="Encrypt any file into a JSON envelope (Login Required)")
 async def encrypt_file(
     file: UploadFile = File(..., description="File to encrypt"),
     password: str = Form(..., description="Password used to encrypt"),
     algorithm: str = Form("AES", description="Algorithm: AES, DES, or RC4"),
-    mode: str = Form("CBC", description="Mode for AES/DES: CBC, CTR, OFB, or CFB"),
+    mode: str = Form("CTR", description="Mode for AES/DES: CTR"),
     notes: str = Form("", description="Ringkasan kasus atau catatan bukti"),
     category: str = Form("", description="Kategori bukti"),
     current_user: dict[str, Any] = Depends(get_current_user),
@@ -97,33 +89,33 @@ async def encrypt_file(
             )
 
         original_filename = file.filename or "file.bin"
+        cipher_mode = "CTR" if algorithm.upper() in {"AES", "DES"} else "STREAM"
 
         envelope_str = encryptbytes(
             data=data_bytes,
             password=password,
             algorithm=algorithm,
-            mode=mode,
+            mode=cipher_mode,
             name=original_filename,
             notes=notes,
             category=category,
         )
 
-        # Simpan riwayat bukti terenkripsi ke database
         try:
             save_evidence(
                 user_id=current_user["user_id"],
                 category=category,
                 filename=original_filename,
                 algorithm=algorithm,
-                mode=mode,
+                mode=cipher_mode,
                 notes=notes,
                 filesize=len(data_bytes),
                 envelope_json=envelope_str,
             )
         except Exception:
-            pass  # Tetap lanjutkan download jika db logging error
+            pass
 
-        mode_suffix = f"-{mode.lower()}" if algorithm.upper() in {"AES", "DES"} else ""
+        mode_suffix = "-ctr" if algorithm.upper() in {"AES", "DES"} else ""
         envelope_filename = f"{original_filename}.{algorithm.lower()}{mode_suffix}.json"
 
         return Response(
@@ -155,7 +147,6 @@ async def decrypt_file(
             password=password,
         )
 
-        # Ekstrak metadata notes dan category dari envelope JSON
         notes_str = ""
         category_str = ""
         try:

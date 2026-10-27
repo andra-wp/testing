@@ -16,7 +16,7 @@ export const EvidenceEncryptTab: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [incidentNotes, setIncidentNotes] = useState('');
   const [algorithm, setAlgorithm] = useState<CryptoAlgorithm>('AES');
-  const [cipherMode, setCipherMode] = useState<BlockCipherMode>('CBC');
+  const cipherMode: BlockCipherMode = 'CTR';
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
@@ -242,18 +242,12 @@ export const EvidenceEncryptTab: React.FC = () => {
                     Mode
                   </label>
                   {algorithm === 'AES' || algorithm === 'DES' ? (
-                    <select
-                      value={cipherMode}
-                      onChange={(e) => setCipherMode(e.target.value as BlockCipherMode)}
-                      className="w-full px-2 py-1 text-xs rounded-lg border border-zinc-800 bg-zinc-900/80 text-zinc-100 focus:outline-none focus:border-zinc-500 font-mono"
-                    >
-                      <option value="CBC">CBC</option>
-                      <option value="CTR">CTR</option>
-                      <option value="OFB">OFB</option>
-                      <option value="CFB">CFB</option>
-                    </select>
+                    <div className="w-full px-2 py-1 text-xs rounded-lg border border-zinc-800 bg-zinc-900/40 text-emerald-400 font-mono flex items-center justify-between">
+                      <span>CTR</span>
+                      <span className="text-[8px] text-zinc-500 font-sans">Counter</span>
+                    </div>
                   ) : (
-                    <div className="px-2 py-1 text-xs rounded-lg border border-zinc-800 bg-zinc-900/40 text-zinc-500 font-mono">
+                    <div className="w-full px-2 py-1 text-xs rounded-lg border border-zinc-800 bg-zinc-900/40 text-zinc-500 font-mono">
                       Stream
                     </div>
                   )}

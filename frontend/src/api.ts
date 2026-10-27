@@ -52,7 +52,7 @@ export const api = {
     text: string,
     password: string,
     algorithm: string = 'AES',
-    mode: AESMode = 'CBC',
+    mode: AESMode = 'CTR',
     name: string = 'incident_notes.txt'
   ): Promise<{ success: boolean; envelope: CryptoEnvelope }> {
     const res = await fetch(`${API_BASE_URL}/crypto/encrypt`, {
@@ -90,7 +90,7 @@ export const api = {
     file: File,
     password: string,
     algorithm: string = 'AES',
-    mode: AESMode = 'CBC',
+    mode: AESMode = 'CTR',
     notes: string = '',
     category: string = ''
   ): Promise<{ blob: Blob; envelopeFilename: string; envelopeJson: CryptoEnvelope }> {

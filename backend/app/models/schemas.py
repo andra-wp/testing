@@ -10,7 +10,7 @@ class EncryptTextRequest(BaseModel):
     text: str = Field(..., description="Plaintext to encrypt")
     password: str = Field(..., min_length=1, description="Secret password for encryption")
     algorithm: str = Field("AES", description="Cipher algorithm: AES, DES, or RC4")
-    mode: str = Field("CBC", description="Cipher mode for AES/DES: CBC, CTR, OFB, CFB")
+    mode: str = Field("CTR", description="Cipher mode: CTR")
     name: str = Field("text.txt", description="Filename or label for the encrypted content")
 
 

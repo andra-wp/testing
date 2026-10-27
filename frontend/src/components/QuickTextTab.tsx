@@ -8,7 +8,7 @@ export const QuickTextTab: React.FC = () => {
   const [plainText, setPlainText] = useState('');
   const [encPassword, setEncPassword] = useState('');
   const [encAlgorithm, setEncAlgorithm] = useState<CryptoAlgorithm>('AES');
-  const [encCipherMode, setEncCipherMode] = useState<BlockCipherMode>('CBC');
+  const encCipherMode: BlockCipherMode = 'CTR';
   const [encryptedEnvelope, setEncryptedEnvelope] = useState<CryptoEnvelope | null>(null);
   const [encLoading, setEncLoading] = useState(false);
   const [encError, setEncError] = useState<string | null>(null);
@@ -122,16 +122,9 @@ export const QuickTextTab: React.FC = () => {
               {encAlgorithm === 'AES' || encAlgorithm === 'DES' ? (
                 <div>
                   <label className="block text-[10px] font-medium text-zinc-300 mb-0.5">Mode {encAlgorithm}</label>
-                  <select
-                    value={encCipherMode}
-                    onChange={(e) => setEncCipherMode(e.target.value as BlockCipherMode)}
-                    className="w-full px-2 py-1 text-xs rounded-xl border border-zinc-800 bg-zinc-950/70 text-zinc-100 font-mono focus:outline-none focus:border-zinc-500 transition-all"
-                  >
-                    <option value="CBC">CBC</option>
-                    <option value="CTR">CTR</option>
-                    <option value="OFB">OFB</option>
-                    <option value="CFB">CFB</option>
-                  </select>
+                  <div className="w-full px-2 py-1 text-xs rounded-xl border border-zinc-800 bg-zinc-950/70 text-emerald-400 font-mono">
+                    CTR
+                  </div>
                 </div>
               ) : (
                 <div className="hidden sm:block"></div>
@@ -167,7 +160,7 @@ export const QuickTextTab: React.FC = () => {
           <div className="mt-2.5 pt-2 border-t border-zinc-800/80 space-y-1 animate-fade-in">
             <div className="flex items-center justify-between text-xs">
               <span className="text-zinc-400 font-mono text-[10px]">
-                Envelope ({encryptedEnvelope.algorithm}-{encryptedEnvelope.mode || 'CBC'}):
+                Envelope ({encryptedEnvelope.algorithm}-{encryptedEnvelope.mode || 'CTR'}):
               </span>
               <button
                 type="button"
