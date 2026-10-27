@@ -1,7 +1,7 @@
 import sqlite3
 from typing import Any, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, status
-from app.models.database import create_user, get_user_by_username
+from app.models.user import create_user, get_user_by_username
 from app.models.schemas import AuthResponse, UserAuthRequest, UserProfileResponse
 from app.utils.security import generate_salt, generate_token, hash_password, verify_password
 

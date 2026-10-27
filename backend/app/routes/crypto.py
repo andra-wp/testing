@@ -4,7 +4,7 @@ import urllib.parse
 from typing import Any
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from app.crypto.service import encryptbytes, decryptbytes
-from app.models.database import save_evidence
+from app.models.evidence import save_evidence
 from app.models.schemas import (
     EncryptTextRequest,
     DecryptRequest,

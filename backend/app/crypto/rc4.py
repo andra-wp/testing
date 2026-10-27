@@ -7,3 +7,4 @@ def encrypt_rc4(key: bytes, data: bytes) -> bytes:
 
 def decrypt_rc4(key: bytes, ciphertext: bytes) -> bytes:
     return ARC4.new(key).decrypt(ciphertext)
+

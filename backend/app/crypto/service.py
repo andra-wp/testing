@@ -121,3 +121,4 @@ def decryptbytes(envelope: str | bytes, password: str) -> tuple[bytes, str]:
         raise ValueError("Wrong password or corrupted envelope.") from exc
 
     return data, str(fields.get("name", "data"))
+

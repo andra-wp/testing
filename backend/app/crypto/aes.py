@@ -12,3 +12,4 @@ def encrypt_aes(key: bytes, data: bytes) -> tuple[bytes, bytes]:
 
 def decrypt_aes(key: bytes, nonce: bytes, ciphertext: bytes) -> bytes:
     return AES.new(key, AES.MODE_CTR, nonce=nonce).decrypt(ciphertext)
+

@@ -1,7 +1,18 @@
 import json
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from app.models.database import get_all_evidences, get_db, get_evidence_by_id
+from app.models import (
+    get_all_evidences,
+    get_db,
+    get_evidence_by_id,
+    create_case,
+    get_all_cases,
+    get_case_by_id,
+    get_evidences_by_case,
+    update_case_status,
+    assign_evidence_to_case,
+    CaseCreateRequest,
+)
 from app.routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/admin", tags=["Administrator & Investigation"])
@@ -21,7 +32,6 @@ def require_admin(current_user: dict[str, Any] = Depends(get_current_user)) -> d
 def list_reports(admin: dict[str, Any] = Depends(require_admin)):
     """Mengambil seluruh daftar bukti insiden digital dari database SQLite."""
     evidences = get_all_evidences()
-    # Jangan kirim ciphertext raksasa di list table untuk efisiensi network, kirim metadata saja
     reports = []
     for ev in evidences:
         reports.append({
@@ -33,6 +43,8 @@ def list_reports(admin: dict[str, Any] = Depends(require_admin)):
             "mode": ev["mode"],
             "notes": ev["notes"],
             "filesize": ev["filesize"],
+            "case_id": ev.get("case_id"),
+            "case_title": ev.get("case_title"),
             "created_at": ev["created_at"],
         })
     return {"success": True, "count": len(reports), "reports": reports}
@@ -74,3 +86,48 @@ def get_stats(admin: dict[str, Any] = Depends(require_admin)):
         "categories": categories,
     }
 
+
+# ==========================================
+# CASE MANAGEMENT ENDPOINTS (OPTION A)
+# ==========================================
+
+@router.get("/cases", summary="Daftar Kasus Insiden Siber (Khusus Admin)")
+def list_cases(admin: dict[str, Any] = Depends(require_admin)):
+    cases = get_all_cases()
+    return {"success": True, "count": len(cases), "cases": cases}
+
+
+@router.post("/cases", summary="Membuat Kasus Insiden Baru (Khusus Admin)")
+def add_case(request: CaseCreateRequest, admin: dict[str, Any] = Depends(require_admin)):
+    case_id = create_case(
+        title=request.title,
+        description=request.description or "",
+        status=request.status or "OPEN",
+        created_by=admin.get("user_id"),
+    )
+    return {"success": True, "case_id": case_id, "message": "Kasus berhasil dibuat."}
+
+
+@router.get("/cases/{case_id}", summary="Detail Kasus & Bukti Terkait (Khusus Admin)")
+def case_detail(case_id: int, admin: dict[str, Any] = Depends(require_admin)):
+    case = get_case_by_id(case_id)
+    if not case:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kasus tidak ditemukan.")
+    evidences = get_evidences_by_case(case_id)
+    return {"success": True, "case": case, "evidences": evidences}
+
+
+@router.patch("/cases/{case_id}/status", summary="Update Status Kasus (Khusus Admin)")
+def change_case_status(case_id: int, status_val: str, admin: dict[str, Any] = Depends(require_admin)):
+    updated = update_case_status(case_id, status_val)
+    if not updated:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Kasus tidak ditemukan.")
+    return {"success": True, "message": f"Status kasus berhasil diubah menjadi {status_val.upper()}."}
+
+
+@router.post("/cases/{case_id}/assign/{evidence_id}", summary="Tautkan Bukti ke Kasus (Khusus Admin)")
+def link_evidence_case(case_id: int, evidence_id: int, admin: dict[str, Any] = Depends(require_admin)):
+    success = assign_evidence_to_case(evidence_id, case_id)
+    if not success:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Bukti atau kasus tidak ditemukan.")
+    return {"success": True, "message": "Bukti berhasil ditautkan ke kasus."}

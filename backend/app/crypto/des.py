@@ -12,3 +12,4 @@ def encrypt_des(key: bytes, data: bytes) -> tuple[bytes, bytes]:
 
 def decrypt_des(key: bytes, nonce: bytes, ciphertext: bytes) -> bytes:
     return DES.new(key, DES.MODE_CTR, nonce=nonce).decrypt(ciphertext)
+
