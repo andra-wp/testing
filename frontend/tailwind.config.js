@@ -6,44 +6,44 @@ export default {
   ],
   theme: {
     extend: {
+      // Design tokens taken from DESIGN-huawei-com.md
       fontFamily: {
-        sans: [
-          '"Plus Jakarta Sans"',
-          "-apple-system",
-          "BlinkMacSystemFont",
-          '"Segoe UI"',
-          "Roboto",
-          "sans-serif"
-        ],
-        mono: [
-          '"JetBrains Mono"',
-          '"SF Mono"',
-          "monospace"
-        ]
+        sans: ["HuaweiSans", '"Helvetica Neue"', "Arial", "sans-serif"],
+        mono: ['"JetBrains Mono"', "monospace"],
       },
       colors: {
-        vault: {
-          950: "#050508", // pitch black background
-          900: "#09090c", // dark surface
-          850: "#0f0f14", // card backdrop
-          800: "#14141b", // elevated surface
-          750: "#1e1e27", // active / hover
-          700: "#272733", // borders
-          600: "#383847", // muted borders
-          500: "#71717a", // muted labels
-          400: "#a1a1aa", // secondary text
-          300: "#d4d4d8", // primary body text
-          100: "#fafafa", // pure white highlights
+        brand: {
+          DEFAULT: "#c7000b",
+          hover: "#e02128",
+          disabled: "rgba(231, 67, 74, 0.6)",
         },
-        security: {
-          blue: "#3b82f6",
-          emerald: "#10b981",
-          amber: "#f59e0b",
-          red: "#ef4444"
-        }
-      }
+        ink: {
+          DEFAULT: "#333333",   // body text
+          dark: "#191919",      // headings
+          secondary: "#595757", // subtitles
+          muted: "#666666",     // hints, captions
+          placeholder: "#aeaeae",
+          disabled: "#999999",
+        },
+        line: "#e6e6e6",    // borders
+        surface: "#f3f3f3", // cards, secondary areas
+      },
+      borderRadius: {
+        input: "4px",
+        btn: "6px",
+        card: "16px",
+      },
+      boxShadow: {
+        card: "0 1px 6px 0 rgba(0,0,0,0.08)",
+        hover: "0 8px 24px 0 rgba(0,0,0,0.08)",
+      },
+      transitionTimingFunction: {
+        standard: "cubic-bezier(0.25, 1, 0.5, 1)",
+      },
+      maxWidth: {
+        page: "1200px",
+      },
     },
   },
   plugins: [],
 }
-

@@ -93,50 +93,49 @@ export const App: React.FC = () => {
     }
   };
 
+  // Class for a navigation tab, highlighted when active
+  const tabClass = (active: boolean) => `tab ${active ? 'tab-active' : ''}`;
+
   return (
-    <div className="h-screen max-h-screen flex flex-col bg-[#050508] text-zinc-300 overflow-hidden font-sans">
+    <div className="h-screen max-h-screen flex flex-col bg-white overflow-hidden">
       <Header
         user={user}
         onOpenAuth={() => setIsAuthModalOpen(true)}
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 min-h-0 max-w-6xl w-full mx-auto px-4 sm:px-6 py-3 flex flex-col justify-start overflow-y-auto">
+      <main className="flex-1 min-h-0 max-w-page w-full mx-auto px-4 sm:px-8 py-8 flex flex-col justify-start overflow-y-auto">
         {/* JIKA BELUM LOGIN: TAMPILKAN AUTH GATEWAY */}
         {!user ? (
-          <div className="flex-1 min-h-0 flex items-center justify-center py-4">
+          <div className="flex-1 min-h-0 flex items-center justify-center">
             <div key={isLoginMode ? 'login-card' : 'register-card'} className="max-w-md w-full mx-auto animate-fade-in">
-              <div className="rounded-2xl border border-zinc-800/80 bg-zinc-900/50 backdrop-blur-xl p-6 shadow-2xl shadow-black/60 relative overflow-hidden">
-                <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent"></div>
-                
-                <div className="text-center mb-5">
-                  <div className="w-10 h-10 rounded-xl bg-zinc-800/60 border border-zinc-700/60 mx-auto flex items-center justify-center text-emerald-400 mb-2.5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.08)]">
-                    <KeyRound className="w-4 h-4" />
+              <div className="card">
+                <div className="text-center mb-6">
+                  <div className="w-12 h-12 rounded-full bg-brand/10 text-brand mx-auto flex items-center justify-center mb-3">
+                    <KeyRound className="w-5 h-5" />
                   </div>
-                  <h2 className="text-sm font-semibold tracking-tight text-white uppercase font-mono">
-                    Autentikasi Akun
-                  </h2>
-                  <p className="text-xs text-zinc-400 mt-1 leading-relaxed">
+                  <h2 className="card-title">Autentikasi Akun</h2>
+                  <p className="card-subtitle">
                     Masuk untuk mengakses sistem pengamanan bukti digital.
                   </p>
                 </div>
 
                 {authError && (
-                  <div className="mb-3.5 flex items-start gap-2.5 p-2.5 text-xs rounded-xl border border-red-900/40 bg-red-950/20 text-red-400 backdrop-blur-sm">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-red-400" />
+                  <div className="alert alert-error mb-4">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>{authError}</span>
                   </div>
                 )}
 
                 {authSuccess && (
-                  <div className="mb-3.5 flex items-start gap-2.5 p-2.5 text-xs rounded-xl border border-emerald-900/40 bg-emerald-950/20 text-emerald-400 backdrop-blur-sm">
-                    <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5 text-emerald-400" />
+                  <div className="alert alert-success mb-4">
+                    <CheckCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
                     <span>{authSuccess}</span>
                   </div>
                 )}
 
                 {/* Toggle Login vs Register */}
-                <div className="grid grid-cols-2 gap-1 p-1 bg-zinc-950/80 border border-zinc-800/80 rounded-xl mb-4 text-xs font-medium">
+                <div className="flex border-b border-line mb-6">
                   <button
                     type="button"
                     onClick={() => {
@@ -144,11 +143,9 @@ export const App: React.FC = () => {
                       setAuthError(null);
                       setAuthSuccess(null);
                     }}
-                    className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 ${
-                      isLoginMode ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
+                    className={`${tabClass(isLoginMode)} flex-1 justify-center`}
                   >
-                    <LogIn className="w-3.5 h-3.5" />
+                    <LogIn className="w-4 h-4" />
                     <span>Masuk</span>
                   </button>
                   <button
@@ -158,37 +155,31 @@ export const App: React.FC = () => {
                       setAuthError(null);
                       setAuthSuccess(null);
                     }}
-                    className={`py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all duration-200 ${
-                      !isLoginMode ? 'bg-zinc-800 text-white font-medium shadow-sm' : 'text-zinc-400 hover:text-zinc-200'
-                    }`}
+                    className={`${tabClass(!isLoginMode)} flex-1 justify-center`}
                   >
-                    <UserPlus className="w-3.5 h-3.5" />
+                    <UserPlus className="w-4 h-4" />
                     <span>Daftar</span>
                   </button>
                 </div>
 
-                <form onSubmit={handleGateSubmit} className="space-y-3.5">
+                <form onSubmit={handleGateSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-[11px] font-medium text-zinc-300 mb-1">
-                      Username
-                    </label>
+                    <label className="label">Username</label>
                     <input
                       type="text"
                       required
                       value={authUsername}
                       onChange={(e) => setAuthUsername(e.target.value)}
                       placeholder="Username akun"
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-800 bg-zinc-950/70 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all"
+                      className="input"
                     />
-                    <p className="text-[10px] text-zinc-500 mt-0.5">
-                      Akun <strong className="text-zinc-300">admin</strong> memiliki hak akses ke seluruh database bukti.
+                    <p className="hint">
+                      Akun <strong className="font-semibold text-ink">admin</strong> memiliki hak akses ke seluruh database bukti.
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-medium text-zinc-300 mb-1">
-                      Password
-                    </label>
+                    <label className="label">Password</label>
                     <input
                       type="password"
                       required
@@ -196,18 +187,14 @@ export const App: React.FC = () => {
                       value={authPassword}
                       onChange={(e) => setAuthPassword(e.target.value)}
                       placeholder="Minimal 8 karakter"
-                      className="w-full px-3 py-2 text-xs rounded-xl border border-zinc-800 bg-zinc-950/70 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all"
+                      className="input"
                     />
-                    <p className="text-[10px] text-zinc-500 mt-0.5 font-mono">
+                    <p className="hint font-mono">
                       PBKDF2-HMAC-SHA256 • 600.000 iterasi
                     </p>
                   </div>
 
-                  <button
-                    type="submit"
-                    disabled={authLoading}
-                    className="w-full py-2.5 px-4 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 disabled:opacity-50 text-xs font-semibold transition-all duration-200 shadow-sm active:scale-[0.98]"
-                  >
+                  <button type="submit" disabled={authLoading} className="btn-primary w-full">
                     {authLoading ? 'Memproses...' : isLoginMode ? 'Masuk' : 'Daftar Akun'}
                   </button>
                 </form>
@@ -215,63 +202,35 @@ export const App: React.FC = () => {
             </div>
           </div>
         ) : (
-          /* JIKA SUDAH LOGIN: TAMPILKAN SELURUH FITUR DENGAN FIT BENTO COMPACT KE ATAS */
+          /* JIKA SUDAH LOGIN: TAMPILKAN SELURUH FITUR */
           <div className="w-full flex flex-col animate-fade-in">
-            {/* Tab Navigasi Minimalist Pills */}
-            <div className="flex p-1 bg-zinc-900/70 border border-zinc-800/80 rounded-xl mb-3 space-x-1 overflow-x-auto backdrop-blur-xl flex-shrink-0 self-start">
-              <button
-                onClick={() => setActiveTab('encrypt')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                  activeTab === 'encrypt'
-                    ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60 font-semibold'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
-                }`}
-              >
-                <Lock className="w-3.5 h-3.5 text-emerald-400" />
+            {/* Tab navigation */}
+            <nav className="flex border-b border-line mb-8 overflow-x-auto flex-shrink-0">
+              <button onClick={() => setActiveTab('encrypt')} className={tabClass(activeTab === 'encrypt')}>
+                <Lock className="w-4 h-4" />
                 <span>Enkripsi Bukti</span>
               </button>
 
-              <button
-                onClick={() => setActiveTab('decrypt')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                  activeTab === 'decrypt'
-                    ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60 font-semibold'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
-                }`}
-              >
-                <Unlock className="w-3.5 h-3.5 text-zinc-300" />
+              <button onClick={() => setActiveTab('decrypt')} className={tabClass(activeTab === 'decrypt')}>
+                <Unlock className="w-4 h-4" />
                 <span>Dekripsi Bukti</span>
               </button>
 
-              <button
-                onClick={() => setActiveTab('quick-text')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                  activeTab === 'quick-text'
-                    ? 'bg-zinc-800 text-white shadow-sm border border-zinc-700/60 font-semibold'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/40'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5 text-zinc-400" />
+              <button onClick={() => setActiveTab('quick-text')} className={tabClass(activeTab === 'quick-text')}>
+                <FileText className="w-4 h-4" />
                 <span>Teks Bebas</span>
               </button>
 
               {/* Tab Khusus Admin */}
               {user.role === 'admin' && (
-                <button
-                  onClick={() => setActiveTab('admin')}
-                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap ${
-                    activeTab === 'admin'
-                      ? 'bg-amber-500/10 text-amber-300 shadow-sm border border-amber-500/30 font-semibold'
-                      : 'text-amber-400/70 hover:text-amber-300 hover:bg-amber-500/5'
-                  }`}
-                >
-                  <Database className="w-3.5 h-3.5 text-amber-400" />
+                <button onClick={() => setActiveTab('admin')} className={tabClass(activeTab === 'admin')}>
+                  <Database className="w-4 h-4" />
                   <span>Database (Admin)</span>
                 </button>
               )}
-            </div>
+            </nav>
 
-            {/* Konten Tab Aktif Compact */}
+            {/* Konten Tab Aktif */}
             <div key={activeTab} className="w-full animate-fade-in">
               {activeTab === 'encrypt' && <EvidenceEncryptTab />}
               {activeTab === 'decrypt' && <EvidenceDecryptTab />}
@@ -282,14 +241,14 @@ export const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="border-t border-zinc-800/80 py-2 bg-black/40 backdrop-blur-xl text-xs text-zinc-500 flex-shrink-0">
-        <div className="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-1 text-[11px]">
+      <footer className="border-t border-line bg-surface py-3 text-xs text-ink-muted flex-shrink-0">
+        <div className="max-w-page mx-auto px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-zinc-400">EvidenceVault</span>
+            <span className="font-semibold text-ink">EvidenceVault</span>
             <span>•</span>
             <span>Pengamanan Bukti Digital Insiden Siber</span>
           </div>
-          <span className="font-mono text-[10px] text-zinc-500">
+          <span className="font-mono">
             AES-256 • DES • RC4 • PBKDF2-HMAC-SHA256
           </span>
         </div>
