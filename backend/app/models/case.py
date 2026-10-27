@@ -3,6 +3,8 @@ from __future__ import annotations
 import sqlite3
 from typing import Any, Optional
 
+from .database import get_db
+
 
 def create_case(
     title: str,
@@ -11,8 +13,6 @@ def create_case(
     created_by: Optional[int] = None,
 ) -> int:
     """Membuat rekaman kasus insiden siber baru."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """INSERT INTO cases (title, description, status, created_by)
@@ -24,8 +24,6 @@ def create_case(
 
 def get_case_by_id(case_id: int) -> Optional[dict[str, Any]]:
     """Mencari detail kasus insiden berdasarkan ID."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """SELECT c.*, u.username as creator
@@ -40,8 +38,6 @@ def get_case_by_id(case_id: int) -> Optional[dict[str, Any]]:
 
 def get_all_cases() -> list[dict[str, Any]]:
     """Mengambil semua daftar kasus insiden siber."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """SELECT c.*, u.username as creator, COUNT(e.id) as evidence_count
@@ -56,8 +52,6 @@ def get_all_cases() -> list[dict[str, Any]]:
 
 def update_case_status(case_id: int, status: str) -> bool:
     """Memperbarui status investigasi kasus (OPEN, INVESTIGATING, CLOSED)."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             "UPDATE cases SET status = ? WHERE id = ?",
@@ -68,8 +62,6 @@ def update_case_status(case_id: int, status: str) -> bool:
 
 def get_evidences_by_case(case_id: int) -> list[dict[str, Any]]:
     """Mengambil semua barang bukti yang terkait dengan kasus tertentu."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """SELECT e.*, u.username as reporter
@@ -84,12 +76,9 @@ def get_evidences_by_case(case_id: int) -> list[dict[str, Any]]:
 
 def assign_evidence_to_case(evidence_id: int, case_id: int) -> bool:
     """Menautkan barang bukti ke dalam suatu kasus insiden."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             "UPDATE evidences SET case_id = ? WHERE id = ?",
             (case_id, evidence_id),
         )
         return cursor.rowcount > 0
-

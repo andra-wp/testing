@@ -1,7 +1,7 @@
 import json
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from app.database import get_db
+from app.models.database import get_db
 from app.models import (
     get_all_evidences,
     get_evidence_by_id,
@@ -13,18 +13,9 @@ from app.models import (
     assign_evidence_to_case,
     CaseCreateRequest,
 )
-from app.routes.auth import get_current_user
+from app.dependencies import get_current_user, require_admin, require_role
 
 router = APIRouter(prefix="/api/admin", tags=["Administrator & Investigation"])
-
-
-def require_admin(current_user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
-    if current_user.get("role") != "admin":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Akses ditolak: Hanya administrator / investigator yang berwenang mengakses data ini.",
-        )
-    return current_user
 
 
 @router.get("/reports", summary="Melihat semua berkas bukti yang diunggah pengguna (Khusus Admin)")

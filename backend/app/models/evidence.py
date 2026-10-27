@@ -3,6 +3,8 @@ from __future__ import annotations
 import sqlite3
 from typing import Any, Optional
 
+from .database import get_db
+
 
 def save_evidence(
     user_id: int,
@@ -16,8 +18,6 @@ def save_evidence(
     case_id: Optional[int] = None,
 ) -> int:
     """Menyimpan catatan laporan bukti terenkripsi ke database."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """INSERT INTO evidences 
@@ -30,8 +30,6 @@ def save_evidence(
 
 def get_all_evidences() -> list[dict[str, Any]]:
     """Mengambil semua daftar bukti yang dilaporkan (khusus admin/investigator)."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """SELECT e.id, e.user_id, e.case_id, u.username as reporter, e.category, e.filename, 
@@ -47,8 +45,6 @@ def get_all_evidences() -> list[dict[str, Any]]:
 
 def get_evidence_by_id(evidence_id: int) -> Optional[dict[str, Any]]:
     """Mencari detail satu bukti berdasarkan ID."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """SELECT e.*, u.username as reporter, c.title as case_title
@@ -64,8 +60,6 @@ def get_evidence_by_id(evidence_id: int) -> Optional[dict[str, Any]]:
 
 def get_evidences_by_user(user_id: int) -> list[dict[str, Any]]:
     """Mengambil riwayat bukti yang diunggah oleh user tertentu."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             """SELECT e.*, c.title as case_title
@@ -80,8 +74,6 @@ def get_evidences_by_user(user_id: int) -> list[dict[str, Any]]:
 
 def count_evidences() -> int:
     """Menghitung total rekaman bukti tersimpan."""
-    from app.database import get_db
-
     with get_db() as conn:
         row = conn.execute("SELECT COUNT(*) FROM evidences").fetchone()
         return row[0] if row else 0
@@ -89,8 +81,6 @@ def count_evidences() -> int:
 
 def get_evidence_stats() -> dict[str, Any]:
     """Menghitung total laporan dan breakdown per kategori."""
-    from app.database import get_db
-
     with get_db() as conn:
         total_reports = conn.execute("SELECT COUNT(*) FROM evidences").fetchone()[0]
         categories_rows = conn.execute(
@@ -102,4 +92,3 @@ def get_evidence_stats() -> dict[str, Any]:
         "total_reports": total_reports,
         "categories": categories,
     }
-

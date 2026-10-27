@@ -3,6 +3,8 @@ from __future__ import annotations
 import sqlite3
 from typing import Any, Optional
 
+from .database import get_db
+
 
 def create_user(
     username: str,
@@ -11,8 +13,6 @@ def create_user(
     role: str = "user",
 ) -> int:
     """Menyimpan user baru ke dalam database (otomatis admin jika username 'admin')."""
-    from app.database import get_db
-
     if username.strip().lower() == "admin":
         role = "admin"
     with get_db() as conn:
@@ -25,8 +25,6 @@ def create_user(
 
 def get_user_by_username(username: str) -> Optional[sqlite3.Row]:
     """Mencari data pengguna berdasarkan username."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             "SELECT * FROM users WHERE username = ?",
@@ -37,8 +35,6 @@ def get_user_by_username(username: str) -> Optional[sqlite3.Row]:
 
 def get_user_by_id(user_id: int) -> Optional[sqlite3.Row]:
     """Mencari data pengguna berdasarkan user ID."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             "SELECT * FROM users WHERE id = ?",
@@ -49,8 +45,6 @@ def get_user_by_id(user_id: int) -> Optional[sqlite3.Row]:
 
 def get_all_users() -> list[dict[str, Any]]:
     """Mengambil seluruh daftar pengguna terdaftar."""
-    from app.database import get_db
-
     with get_db() as conn:
         cursor = conn.execute(
             "SELECT id, username, role, created_at FROM users ORDER BY id ASC"
@@ -60,9 +54,6 @@ def get_all_users() -> list[dict[str, Any]]:
 
 def count_users() -> int:
     """Menghitung total user yang terdaftar."""
-    from app.database import get_db
-
     with get_db() as conn:
         row = conn.execute("SELECT COUNT(*) FROM users").fetchone()
         return row[0] if row else 0
-

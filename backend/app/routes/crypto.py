@@ -11,7 +11,7 @@ from app.models.schemas import (
     EncryptResponse,
     DecryptResponse,
 )
-from app.routes.auth import get_current_user
+from app.dependencies import get_current_user
 
 router = APIRouter(prefix="/api/crypto", tags=["Cryptography"])
 

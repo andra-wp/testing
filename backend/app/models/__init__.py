@@ -1,4 +1,4 @@
-from app.database import DB_DIR, DB_PATH, get_db, init_db
+from .database import DB_DIR, DB_PATH, get_db, init_db
 
 # Re-export fitur modular
 from .user import (
