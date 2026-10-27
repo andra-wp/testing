@@ -1,4 +1,3 @@
-"""Laporan milik pelapor."""
 from datetime import date
 from typing import Literal
 
@@ -14,7 +13,7 @@ from ..services import reports as svc
 from ..services.attachments import save_upload
 from ..validators import CATEGORIES
 
-router = APIRouter(prefix="/api/reports", tags=["laporan (pelapor)"])
+router = APIRouter(prefix="/api/reports", tags=["reports"])
 
 
 class ReportIn(BaseModel):
@@ -30,14 +29,14 @@ class ReportIn(BaseModel):
     @classmethod
     def _cat(cls, v):
         if v not in CATEGORIES:
-            raise ValueError("Kategori tidak dikenal")
+            raise ValueError("Unknown category")
         return v
 
     @field_validator("incident_date")
     @classmethod
     def _date(cls, v):
         if v and v > date.today():
-            raise ValueError("Tanggal kejadian tidak boleh di masa depan")
+            raise ValueError("Incident date cannot be in the future")
         return v
 
 
@@ -52,9 +51,9 @@ def categories():
 
 @router.post("", status_code=201)
 def create_report(body: ReportIn, user=Depends(require_pelapor), db=Depends(get_db)):
-    kyc.require_verified(db, user["id"])  # laporan hanya dari pelapor dengan KTP terverifikasi
+    kyc.require_verified(db, user["id"])
     if not body.consent:
-        raise HTTPException(400, "Persetujuan pemrosesan data wajib diberikan")
+        raise HTTPException(400, "Consent to data processing is required")
     rid, ts = new_id(), now()
     db.execute(
         "INSERT INTO reports (id, owner_id, category, status, incident_date, created_at, updated_at)"
@@ -93,13 +92,13 @@ def add_attachment(
     report_id: str,
     kind: Literal["dokumen", "video"] = Form(...),
     file: UploadFile = File(...),
-    share: bool = Form(False, description="Izinkan semua petugas melihat file ini selama laporan terbuka"),
+    share: bool = Form(False, description="Allow all officers to view this file while report is open"),
     user=Depends(require_pelapor),
     db=Depends(get_db),
 ):
     row = svc.get_report_row(db, report_id, owner_id=user["id"])
     if row["status"] in ("selesai", "ditolak"):
-        raise HTTPException(409, "Laporan sudah ditutup")
+        raise HTTPException(409, "Report is closed")
     info = save_upload(db, file, owner_id=user["id"], kind=kind, report_id=report_id, share=share)
     db.execute("UPDATE reports SET updated_at=? WHERE id=?", (now(), report_id))
     audit.log(db, user, "attachment.upload", "attachment", info["id"], f"kind={kind} shared={info['shared']}")

@@ -23,7 +23,7 @@ class RegisterIn(BaseModel):
     def _email(cls, v: str) -> str:
         v = v.strip().lower()
         if not EMAIL_RE.match(v):
-            raise ValueError("Format email tidak valid")
+            raise ValueError("Invalid email format")
         return v
 
     @field_validator("full_name")
@@ -36,7 +36,7 @@ class RegisterIn(BaseModel):
     def _nik(cls, v: str) -> str:
         v = v.strip()
         if not NIK_RE.match(v):
-            raise ValueError("NIK harus 16 digit angka")
+            raise ValueError("National ID (NIK) must be 16 digits")
         return v
 
     @field_validator("phone")
@@ -44,7 +44,7 @@ class RegisterIn(BaseModel):
     def _phone(cls, v: str) -> str:
         v = v.replace(" ", "").replace("-", "")
         if not PHONE_RE.match(v):
-            raise ValueError("Nomor HP tidak valid (contoh: 081234567890)")
+            raise ValueError("Invalid phone number (example: 081234567890)")
         return v
 
 
@@ -56,10 +56,10 @@ class LoginIn(BaseModel):
 @router.post("/register", status_code=201)
 def register(body: RegisterIn, db=Depends(get_db)):
     if not body.consent:
-        raise HTTPException(400, "Persetujuan pemrosesan data pribadi wajib diberikan")
+        raise HTTPException(400, "Consent to personal data processing is required")
     bidx = blind_index(body.email)
     if db.execute("SELECT 1 FROM users WHERE email_bidx=?", (bidx,)).fetchone():
-        raise HTTPException(409, "Email sudah terdaftar")
+        raise HTTPException(409, "Email is already registered")
     uid = new_id()
     db.execute(
         "INSERT INTO users (id, email_bidx, password_hash, role, consent_at, created_at) VALUES (?,?,?,?,?,?)",
@@ -78,7 +78,7 @@ def login(body: LoginIn, db=Depends(get_db)):
     if not verify_password(body.password, row["password_hash"] if row else None):
         audit.log(db, None, "auth.login_failed")
         db.commit()
-        raise HTTPException(401, "Email atau kata sandi salah")
+        raise HTTPException(401, "Incorrect email or password")
     audit.log(db, {"id": row["id"], "role": row["role"]}, "auth.login", "user", row["id"])
     db.commit()
     return {"access_token": create_token(row["id"], row["role"]), "token_type": "bearer", "role": row["role"]}

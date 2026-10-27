@@ -6,7 +6,7 @@ from fastapi import Query
 CipherName = Literal["AES-256-GCM", "DES-CBC-HMAC", "RC4-HMAC"]
 
 
-def cipher_query(cipher: CipherName = Query("AES-256-GCM", description="Versi ciphertext yang didekripsi")) -> str:
+def cipher_query(cipher: CipherName = Query("AES-256-GCM", description="Ciphertext version to decrypt")) -> str:
     return cipher
 
 

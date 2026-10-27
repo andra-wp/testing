@@ -1,4 +1,3 @@
-"""Data milik pelapor sendiri: profil, scan KTP, ekspor data, hapus akun (hak subjek data UU PDP)."""
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -12,7 +11,7 @@ from ..services import reports as svc
 from ..services.attachments import delete_attachment, save_upload
 from .common import Timer, cipher_query
 
-router = APIRouter(prefix="/api/me", tags=["data saya"])
+router = APIRouter(prefix="/api/me", tags=["me"])
 
 
 def _ktp_row(db, user_id):
@@ -30,7 +29,6 @@ def profile(cipher: str = Depends(cipher_query), user=Depends(require_pelapor), 
 
 @router.get("/ktp")
 def ktp_info(user=Depends(require_pelapor), db=Depends(get_db)):
-    """Status verifikasi KTP, riwayat keputusan, dan siapa saja petugas yang pernah membuka KTP."""
     row = _ktp_row(db, user["id"])
     out = {"exists": row is not None, "verification": kyc.summary(db, user["id"]),
            "history": kyc.history(db, user["id"]), "views": kyc.views(db, user["id"])}
@@ -42,7 +40,6 @@ def ktp_info(user=Depends(require_pelapor), db=Depends(get_db)):
 
 @router.post("/ktp", status_code=201)
 def upload_ktp(file: UploadFile = File(...), user=Depends(require_pelapor), db=Depends(get_db)):
-    """Unggah/ganti KTP. Setiap unggahan memulai verifikasi baru (status 'menunggu')."""
     old = _ktp_row(db, user["id"])
     info = save_upload(db, file, owner_id=user["id"], kind="ktp", report_id=None)
     if old:
@@ -55,7 +52,6 @@ def upload_ktp(file: UploadFile = File(...), user=Depends(require_pelapor), db=D
 
 @router.get("/export")
 def export(user=Depends(require_pelapor), db=Depends(get_db)):
-    """Hak akses & portabilitas data: semua data pribadi dalam satu file JSON."""
     uid = user["id"]
     reports = []
     for row in db.execute("SELECT * FROM reports WHERE owner_id=? ORDER BY created_at", (uid,)).fetchall():
@@ -71,11 +67,11 @@ def export(user=Depends(require_pelapor), db=Depends(get_db)):
         "profile": {f: vault.read_text(db, "user", uid, f) for f in svc.PROFILE_FIELDS},
         "ktp": ktp_info(user, db),
         "reports": reports,
-        "note": "Isi file lampiran dapat diunduh satu per satu dari halaman laporan.",
+        "note": "Attachment file contents can be downloaded individually from the report page.",
     }
     audit.log(db, user, "me.export", "user", uid)
     db.commit()
-    return JSONResponse(payload, headers={"Content-Disposition": 'attachment; filename="data-saya-lapor-aman.json"'})
+    return JSONResponse(payload, headers={"Content-Disposition": 'attachment; filename="my-data-safe-report.json"'})
 
 
 class DeleteIn(BaseModel):
@@ -84,11 +80,10 @@ class DeleteIn(BaseModel):
 
 @router.delete("", status_code=204)
 def delete_account(body: DeleteIn, user=Depends(require_pelapor), db=Depends(get_db)):
-    """Hak penghapusan: kunci terbungkus dan ciphertext dihapus (crypto-shredding)."""
     row = db.execute("SELECT password_hash FROM users WHERE id=?", (user["id"],)).fetchone()
     if not verify_password(body.password, row["password_hash"]):
-        raise HTTPException(403, "Kata sandi salah")
+        raise HTTPException(403, "Incorrect password")
     vault.delete_owner(db, user["id"])
-    db.execute("DELETE FROM users WHERE id=?", (user["id"],))  # cascade: laporan, lampiran, event
+    db.execute("DELETE FROM users WHERE id=?", (user["id"],))
     audit.log(db, user, "me.delete_account", "user", user["id"])
     db.commit()

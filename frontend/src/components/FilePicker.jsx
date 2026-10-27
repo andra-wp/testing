@@ -2,7 +2,6 @@ import { useRef } from 'react'
 import { FILE_RULES } from '../lib/constants'
 import { formatBytes } from '../lib/format'
 
-/** Pilih file + validasi ekstensi & ukuran di sisi klien (server tetap memvalidasi ulang). */
 export default function FilePicker({ kind, files, onChange, multiple = true, onError, extra }) {
   const ref = useRef(null)
   const rule = FILE_RULES[kind]
@@ -13,11 +12,11 @@ export default function FilePicker({ kind, files, onChange, multiple = true, onE
     for (const f of list) {
       const ext = '.' + f.name.split('.').pop().toLowerCase()
       if (!exts.includes(ext)) {
-        onError?.(`${f.name}: format tidak didukung (${rule.label})`)
+        onError?.(`${f.name}: unsupported format (${rule.label})`)
         continue
       }
       if (f.size > rule.maxMb * 1024 * 1024) {
-        onError?.(`${f.name}: melebihi ${rule.maxMb} MB`)
+        onError?.(`${f.name}: exceeds ${rule.maxMb} MB`)
         continue
       }
       next.push(f)
@@ -36,7 +35,7 @@ export default function FilePicker({ kind, files, onChange, multiple = true, onE
           add(e.dataTransfer.files)
         }}
       >
-        <p className="text-sm font-medium text-slate-700">Klik atau seret file ke sini</p>
+        <p className="text-sm font-medium text-slate-700">Click or drag files here</p>
         <p className="mt-1 text-xs text-slate-500">{rule.label}</p>
         <input
           ref={ref}
@@ -59,7 +58,7 @@ export default function FilePicker({ kind, files, onChange, multiple = true, onE
                 <span className="flex shrink-0 items-center gap-3 text-xs text-slate-500">
                   {formatBytes(f.size)}
                   <button type="button" className="text-red-600 hover:underline" onClick={() => onChange(files.filter((_, j) => j !== i))}>
-                    Hapus
+                    Remove
                   </button>
                 </span>
               </div>

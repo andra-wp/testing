@@ -19,14 +19,13 @@ def hash_password(password: str) -> str:
 
 
 def verify_password(password: str, hashed: str | None) -> bool:
-    if hashed is None:  # tetap jalankan bcrypt agar waktu respons tidak membocorkan email terdaftar
+    if hashed is None:
         bcrypt.checkpw(password.encode(), _DUMMY_HASH)
         return False
     return bcrypt.checkpw(password.encode(), hashed.encode())
 
 
 def blind_index(email: str) -> str:
-    """HMAC email: bisa dicari saat login tanpa menyimpan email dalam bentuk asli."""
     norm = email.strip().lower().encode()
     return hmac.new(get_settings().blind_index_key, norm, hashlib.sha256).hexdigest()
 
@@ -38,7 +37,7 @@ def create_token(user_id: str, role: str) -> str:
 
 
 def get_current_user(cred: HTTPAuthorizationCredentials | None = Depends(_bearer), db=Depends(get_db)) -> dict:
-    unauthorized = HTTPException(status.HTTP_401_UNAUTHORIZED, "Sesi tidak valid, silakan masuk lagi",
+    unauthorized = HTTPException(status.HTTP_401_UNAUTHORIZED, "Invalid session, please sign in again",
                                  headers={"WWW-Authenticate": "Bearer"})
     if cred is None:
         raise unauthorized
@@ -55,7 +54,7 @@ def get_current_user(cred: HTTPAuthorizationCredentials | None = Depends(_bearer
 def require_role(role: str):
     def dep(user: dict = Depends(get_current_user)) -> dict:
         if user["role"] != role:
-            raise HTTPException(status.HTTP_403_FORBIDDEN, "Akses ditolak untuk peran ini")
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Access denied for this role")
         return user
     return dep
 

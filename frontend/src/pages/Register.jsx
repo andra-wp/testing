@@ -18,8 +18,8 @@ export default function Register() {
 
   const submit = async (e) => {
     e.preventDefault()
-    if (form.password !== form.password2) return setError('Konfirmasi kata sandi tidak sama')
-    if (!/^\d{16}$/.test(form.nik)) return setError('NIK harus 16 digit angka')
+    if (form.password !== form.password2) return setError('Password confirmation does not match')
+    if (!/^\d{16}$/.test(form.nik)) return setError('National ID (NIK) must be 16 digits')
     setBusy(true)
     setError('')
     try {
@@ -35,15 +35,15 @@ export default function Register() {
   }
 
   return (
-    <AuthShell title="Daftar sebagai pelapor" subtitle="Data identitas dibutuhkan agar laporan bisa ditindaklanjuti.">
+    <AuthShell title="Register as a reporter" subtitle="Identity data is required so reports can be followed up.">
       <form onSubmit={submit} className="card space-y-4 p-6">
         <Alert>{error}</Alert>
-        <Field label="Nama lengkap (sesuai KTP)">
+        <Field label="Full name (as in ID card)">
           <input className="input" required minLength={3} maxLength={100} value={form.full_name} onChange={set('full_name')} />
           <LengthHint value={form.full_name} min={3} max={100} />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="NIK">
+          <Field label="National ID (NIK)">
             <input
               className="input"
               inputMode="numeric"
@@ -54,7 +54,7 @@ export default function Register() {
             />
             <LengthHint value={form.nik} min={16} max={16} unit="digit" exact />
           </Field>
-          <Field label="Nomor HP">
+          <Field label="Phone number">
             <input className="input" inputMode="tel" placeholder="08xxxxxxxxxx" maxLength={16} required value={form.phone} onChange={set('phone')} />
             <LengthHint value={form.phone.replace(/[\s-]/g, '').replace(/^\+?62/, '0')} min={10} max={15} unit="digit" />
           </Field>
@@ -63,15 +63,15 @@ export default function Register() {
           <input className="input" type="email" required value={form.email} onChange={set('email')} />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Kata sandi">
+          <Field label="Password">
             <input className="input" type="password" minLength={10} maxLength={64} required autoComplete="new-password" value={form.password} onChange={set('password')} />
             <LengthHint value={form.password} min={10} max={64} />
           </Field>
-          <Field label="Ulangi kata sandi">
+          <Field label="Confirm password">
             <input className="input" type="password" required autoComplete="new-password" value={form.password2} onChange={set('password2')} />
             {form.password2 && (
               <p className={`mt-1 text-xs ${form.password2 === form.password ? 'text-emerald-700' : 'text-amber-700'}`}>
-                {form.password2 === form.password ? 'Kata sandi sama ✓' : 'Belum sama dengan kata sandi'}
+                {form.password2 === form.password ? 'Passwords match ✓' : 'Passwords do not match'}
               </p>
             )}
           </Field>
@@ -79,18 +79,16 @@ export default function Register() {
         <label className="flex gap-3 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
           <input type="checkbox" className="mt-0.5" checked={form.consent} onChange={set('consent')} required />
           <span>
-            Saya menyetujui pemrosesan data pribadi saya (nama, NIK, nomor HP, email, scan KTP, dan bukti laporan) oleh
-            {` ${OFFICER_UNIT} `}kampus untuk verifikasi dan penanganan laporan, sesuai UU No. 27 Tahun 2022. Saya dapat mengunduh atau
-            menghapus data saya kapan saja.
+            I consent to the processing of my personal data (name, ID number, phone number, email, ID card scan, and report evidence) by the campus {OFFICER_UNIT} for report verification and incident response, in accordance with personal data protection laws. I may download or delete my data at any time.
           </span>
         </label>
         <button className="btn-primary w-full" disabled={busy || !form.consent}>
-          {busy ? 'Memproses…' : 'Daftar'}
+          {busy ? 'Processing…' : 'Register'}
         </button>
         <p className="text-center text-sm text-slate-500">
-          Sudah punya akun?{' '}
+          Already have an account?{' '}
           <Link to="/login" className="font-medium text-brand-700 hover:underline">
-            Masuk
+            Sign In
           </Link>
         </p>
       </form>

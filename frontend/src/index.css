@@ -1,16 +1,10 @@
 @import "tailwindcss";
 
-/* Mode gelap berbasis class .dark di <html> (dipasang oleh ThemeContext / skrip di index.html) */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/*
- * Huawei design tokens (light). Components keep using Tailwind's slate/brand names;
- * only the values change, so every page picks up the new look without per-component edits.
- */
 @theme {
   --font-sans: "HuaweiSans", "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
 
-  /* neutral scale: Huawei background-light, borders, text-muted/secondary/primary/dark */
   --color-slate-50: #f3f3f3;
   --color-slate-100: #eeeeee;
   --color-slate-200: #e6e6e6;
@@ -22,35 +16,26 @@
   --color-slate-800: #333333;
   --color-slate-900: #191919;
 
-  /* brand: Huawei red */
   --color-brand-50: #fdeced;
   --color-brand-100: #f8cfd1;
   --color-brand-600: #c7000b;
   --color-brand-700: #c7000b;
   --color-brand-800: #a3000a;
-  /* warna solid untuk latar tombol/pita berteks putih: TIDAK dibalik di mode gelap */
   --color-brand-solid: #c7000b;
   --color-brand-solid-hover: #e02128;
-  /* permukaan kartu, input, modal */
   --color-surface: #ffffff;
 
-  /* Huawei radius scale: input 4px, button 6px, card 16px */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 6px;
   --radius-xl: 16px;
 
-  /* Huawei elevation: soft card shadow, deeper on hover */
   --shadow-card: 0 1px 6px 0 rgba(0, 0, 0, 0.08);
   --shadow-hover: 0 8px 24px 0 rgba(0, 0, 0, 0.08);
 
   --ease-standard: cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/*
- * Mode gelap: palet yang dipakai aplikasi dipetakan ulang ke pasangan gelap Huawei
- * (latar #000, teks #f3f3f3, border #777). Skala netral dibalik, merah dibuat lebih terang untuk teks.
- */
 .dark {
   color-scheme: dark;
   --color-surface: #141414;
@@ -95,7 +80,6 @@
   --color-sky-800: #bae6fd;
 }
 
-/* Kelas komponen kecil yang dipakai berulang (Tailwind v4: @utility bisa di-@apply) */
 @utility card {
   @apply rounded-xl border border-slate-200 bg-surface shadow-card;
 }
@@ -108,15 +92,12 @@
 @utility btn {
   @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-6 py-2.5 text-sm transition-colors duration-200 ease-standard disabled:cursor-not-allowed disabled:opacity-60;
 }
-/* Primary: solid Huawei red */
 @utility btn-primary {
   @apply btn bg-brand-solid text-white hover:bg-brand-solid-hover;
 }
-/* Secondary: outlined in text colour, turns red on hover */
 @utility btn-secondary {
   @apply btn border border-slate-700 bg-transparent text-slate-800 hover:border-brand-600 hover:bg-slate-900/5 hover:text-brand-700;
 }
-/* Danger: outlined red, so it never looks like the solid red primary button */
 @utility btn-danger {
   @apply btn border border-red-600 bg-transparent text-red-700 hover:bg-red-50;
 }
@@ -130,7 +111,6 @@
     line-height: 1.5;
   }
 
-  /* Huawei focus state: 2px brand outline with 2px offset on every interactive element */
   :focus-visible {
     outline: 2px solid var(--color-brand-600);
     outline-offset: 2px;

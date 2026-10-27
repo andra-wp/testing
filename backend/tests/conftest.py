@@ -1,5 +1,7 @@
 import base64
 import os
+import subprocess
+import sys
 
 import pytest
 
@@ -15,11 +17,6 @@ def _env(tmp_path_factory):
     from app.config import get_settings
     get_settings.cache_clear()
     yield
-
-
-# ---------------------------------------------------------------- helper bersama
-import subprocess
-import sys
 
 
 def login(client, email, password):
@@ -38,7 +35,6 @@ KTP_JPG = b"\xff\xd8\xff\xe0" + os.urandom(30_000)
 
 
 def verified_pelapor(client, officer, email, nik, phone="081234567890", name="Budi Santoso"):
-    """Daftar, unggah KTP, lalu diverifikasi petugas -> siap membuat laporan."""
     r = client.post("/api/auth/register", json={"email": email, "password": "rahasia-123", "full_name": name,
                                                 "nik": nik, "phone": phone, "consent": True})
     assert r.status_code == 201, r.text

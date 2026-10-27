@@ -29,7 +29,6 @@ def init_db() -> None:
 
 
 def get_db():
-    """Dependency FastAPI: satu koneksi per request. Endpoint melakukan commit sendiri."""
     conn = connect()
     try:
         yield conn

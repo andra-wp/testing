@@ -4,33 +4,33 @@ import { Alert, PageHeader, Spinner } from '../../components/ui'
 import { formatDate } from '../../lib/format'
 
 const ACTION_LABELS = {
-  'auth.login': 'Masuk',
-  'auth.login_failed': 'Gagal masuk',
-  'auth.register': 'Pendaftaran',
-  'report.create': 'Laporan dibuat',
-  'attachment.upload': 'Lampiran diunggah',
-  'attachment.download': 'Lampiran diunduh',
-  'attachment.verify': 'Cek integritas',
-  'attachment.access_denied': 'Akses lampiran ditolak',
-  'officer.view_report': 'Petugas membuka kasus',
-  'officer.change_status': 'Status diubah',
-  'officer.add_note': 'Catatan petugas',
-  'officer.request_access': 'Petugas meminta akses file',
-  'officer.view_attachment': 'Petugas melihat file',
-  'officer.view_denied': 'Petugas ditolak melihat file',
-  'attachment.access_grant': 'Pelapor mengizinkan akses',
-  'attachment.access_deny': 'Pelapor menolak akses',
-  'attachment.access_revoke': 'Pelapor mencabut akses',
-  'officer.open_verification': 'Petugas membuka verifikasi KTP',
-  'officer.view_ktp': 'Petugas melihat KTP',
-  'officer.view_ktp_denied': 'Akses KTP ditolak',
-  'officer.ktp_terverifikasi': 'KTP diverifikasi',
-  'officer.ktp_ditolak': 'KTP ditolak',
-  'officer.ktp_flag': 'Diminta verifikasi ulang',
-  'me.view_profile': 'Pelapor melihat profil',
-  'me.upload_ktp': 'KTP diunggah',
-  'me.export': 'Ekspor data',
-  'me.delete_account': 'Akun dihapus',
+  'auth.login': 'Sign in',
+  'auth.login_failed': 'Failed sign in',
+  'auth.register': 'Registration',
+  'report.create': 'Report created',
+  'attachment.upload': 'Attachment uploaded',
+  'attachment.download': 'Attachment downloaded',
+  'attachment.verify': 'Integrity check',
+  'attachment.access_denied': 'Attachment access denied',
+  'officer.view_report': 'Officer opened case',
+  'officer.change_status': 'Status changed',
+  'officer.add_note': 'Officer note',
+  'officer.request_access': 'Officer requested file access',
+  'officer.view_attachment': 'Officer viewed file',
+  'officer.view_denied': 'Officer denied file view',
+  'attachment.access_grant': 'Reporter granted access',
+  'attachment.access_deny': 'Reporter denied access',
+  'attachment.access_revoke': 'Reporter revoked access',
+  'officer.open_verification': 'Officer opened ID verification',
+  'officer.view_ktp': 'Officer viewed ID card',
+  'officer.view_ktp_denied': 'ID card access denied',
+  'officer.ktp_terverifikasi': 'ID verified',
+  'officer.ktp_ditolak': 'ID rejected',
+  'officer.ktp_flag': 'Re-verification requested',
+  'me.view_profile': 'Reporter viewed profile',
+  'me.upload_ktp': 'ID uploaded',
+  'me.export': 'Data exported',
+  'me.delete_account': 'Account deleted',
 }
 
 export default function AuditLog() {
@@ -42,7 +42,7 @@ export default function AuditLog() {
 
   return (
     <>
-      <PageHeader title="Audit Log" subtitle="Setiap akses ke data tercatat. Log tidak berisi data pribadi." />
+      <PageHeader title="Audit Log" subtitle="Every data access is logged. Logs contain no personal data." />
       <Alert>{error}</Alert>
       {!rows ? (
         <Spinner />
@@ -51,11 +51,11 @@ export default function AuditLog() {
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Waktu</th>
-                <th className="px-4 py-3 font-medium">Peran</th>
-                <th className="px-4 py-3 font-medium">Aksi</th>
-                <th className="px-4 py-3 font-medium">Objek</th>
-                <th className="px-4 py-3 font-medium">Detail</th>
+                <th className="px-4 py-3 font-medium">Time</th>
+                <th className="px-4 py-3 font-medium">Role</th>
+                <th className="px-4 py-3 font-medium">Action</th>
+                <th className="px-4 py-3 font-medium">Object</th>
+                <th className="px-4 py-3 font-medium">Details</th>
               </tr>
             </thead>
             <tbody>

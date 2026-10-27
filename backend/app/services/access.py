@@ -1,13 +1,3 @@
-"""Izin akses lampiran untuk petugas.
-
-Aturan:
-- Bawaan: hanya pemilik yang bisa mengambil file.
-- Pelapor dapat mengizinkan per file (saat mengunggah atau sesudahnya). Izin berlaku untuk
-  SEMUA petugas, hanya selama laporan belum ditutup, dan bisa dicabut kapan saja.
-- Petugas dapat meminta akses (dengan alasan) untuk file yang belum diizinkan.
-- Scan KTP tidak pernah bisa dibagikan.
-- Petugas hanya mendapat pratinjau (tanpa unduh berkas asli); setiap pembukaan tercatat.
-"""
 from fastapi import HTTPException
 
 from ..crypto import vault
@@ -29,7 +19,7 @@ def status_of(db, att_id: str) -> str:
 def set_grant(db, att, status: str, *, source: str, requested_by: str | None = None,
               reason: str | None = None) -> None:
     if att["kind"] == "ktp":
-        raise HTTPException(400, "Scan KTP tidak dapat dibagikan ke petugas")
+        raise HTTPException(400, "ID card scan cannot be shared with officers")
     ts = now()
     requested = status == "requested"
     db.execute(
@@ -50,25 +40,25 @@ def set_grant(db, att, status: str, *, source: str, requested_by: str | None = N
 
 def can_officer_view(db, att, report) -> tuple[bool, str]:
     if att["kind"] == "ktp" or report is None:
-        return False, "Scan KTP tidak dapat dilihat petugas"
+        return False, "ID card scan cannot be viewed by officers"
     if report["status"] in CLOSED:
-        return False, "Laporan sudah ditutup, akses petugas berakhir"
+        return False, "Report is closed, officer access has expired"
     st = status_of(db, att["id"])
     if st != "granted":
-        return False, {"none": "Pelapor belum mengizinkan file ini",
-                       "requested": "Menunggu persetujuan pelapor",
-                       "denied": "Pelapor menolak permintaan akses",
-                       "revoked": "Pelapor mencabut izin"}.get(st, "Tidak diizinkan")
+        return False, {"none": "Reporter has not permitted this file",
+                       "requested": "Awaiting reporter approval",
+                       "denied": "Reporter denied access request",
+                       "revoked": "Reporter revoked access"}.get(st, "Not permitted")
     return True, ""
 
 
 def _officer_name(db, officer_id: str | None) -> str:
     if not officer_id:
-        return "Petugas"
+        return "Officer"
     try:
-        return vault.read_text(db, "user", officer_id, "full_name") or "Petugas"
+        return vault.read_text(db, "user", officer_id, "full_name") or "Officer"
     except Exception:
-        return "Petugas (akun dihapus)"
+        return "Officer (account deleted)"
 
 
 def access_info(db, att, report, *, for_owner: bool) -> dict:
@@ -88,6 +78,6 @@ def access_info(db, att, report, *, for_owner: bool) -> dict:
         (VIEW_ACTION, att["id"]),
     ).fetchall()
     info["view_count"] = len(views)
-    if for_owner:  # pelapor berhak tahu siapa saja yang membuka filenya
+    if for_owner:
         info["views"] = [{"officer": _officer_name(db, v["actor_id"]), "at": v["created_at"]} for v in views[:20]]
     return info

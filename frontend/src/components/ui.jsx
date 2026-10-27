@@ -20,7 +20,7 @@ export function Alert({ kind = 'error', children }) {
   return <div className={`rounded-lg border px-3 py-2 text-sm ${cls}`}>{children}</div>
 }
 
-export function Spinner({ label = 'Memuat…' }) {
+export function Spinner({ label = 'Loading…' }) {
   return (
     <div className="flex items-center gap-2 py-8 text-sm text-slate-500">
       <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-brand-700" />
@@ -86,20 +86,16 @@ export function KycBadge({ status }) {
   )
 }
 
-/**
- * Info panjang input, mis. "min. 5 · maks. 120 ... 12/120". Bila belum memenuhi minimum,
- * tampil "kurang N lagi" (amber); bila sudah, hijau dengan tanda centang. `unit` bisa 'digit'.
- */
-export function LengthHint({ value = '', min = 0, max, unit = 'karakter', exact = false }) {
+export function LengthHint({ value = '', min = 0, max, unit = 'characters', exact = false }) {
   const len = value.trim().length
   const short = min > 0 && len < min
-  const rule = exact ? `harus ${min} ${unit}` : [min > 0 && `min. ${min}`, max && `maks. ${max}`].filter(Boolean).join(' · ')
+  const rule = exact ? `must be ${min} ${unit}` : [min > 0 && `min. ${min}`, max && `max. ${max}`].filter(Boolean).join(' · ')
   const cls = len === 0 ? 'text-slate-500' : short ? 'text-amber-700' : 'text-emerald-700'
   return (
     <p className={`mt-1 flex justify-between gap-3 text-xs ${cls}`} aria-live="polite">
       <span>
         {rule}
-        {len > 0 && short ? ` · kurang ${min - len} lagi` : ''}
+        {len > 0 && short ? ` · ${min - len} more needed` : ''}
         {len > 0 && !short && min > 0 ? ' · ✓' : ''}
       </span>
       <span className="shrink-0 tabular-nums">

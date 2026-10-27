@@ -16,7 +16,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Lapor Aman API", version="1.0.0", lifespan=lifespan)
+app = FastAPI(title="Safe Report API", version="1.0.0", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,8 +38,7 @@ async def security_headers(request: Request, call_next):
 
 @app.exception_handler(IntegrityError)
 async def integrity_error(request: Request, exc: IntegrityError):
-    # Data tidak pernah dikirim bila verifikasi gagal
-    return JSONResponse(status_code=500, content={"detail": f"Verifikasi integritas gagal: {exc}"})
+    return JSONResponse(status_code=500, content={"detail": f"Integrity verification failed: {exc}"})
 
 
 for r in (auth.router, me.router, reports.router, attachments.router, officer.router, verifications.router):

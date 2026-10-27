@@ -2,7 +2,7 @@ import { OFFICER_UNIT, STATUS } from '../lib/constants'
 import { formatDate } from '../lib/format'
 
 export default function EventTimeline({ events }) {
-  if (!events?.length) return <p className="text-sm text-slate-500">Belum ada aktivitas.</p>
+  if (!events?.length) return <p className="text-sm text-slate-500">No activity yet.</p>
   return (
     <ol className="relative space-y-4 border-l border-slate-200 pl-5">
       {events.map((e) => (
@@ -13,7 +13,7 @@ export default function EventTimeline({ events }) {
             }`}
           />
           <div className="text-xs text-slate-500">
-            {formatDate(e.created_at)} · {e.actor_role === 'petugas' ? `Petugas ${OFFICER_UNIT}` : 'Pelapor'}
+            {formatDate(e.created_at)} · {e.actor_role === 'petugas' ? `${OFFICER_UNIT} Officer` : 'Reporter'}
           </div>
           {e.type === 'status' && (
             <div className="text-sm font-medium text-slate-800">

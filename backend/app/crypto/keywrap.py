@@ -1,8 +1,3 @@
-"""Envelope encryption: kunci data per item dibungkus MASTER_KEY (KEK) dengan AES-256-GCM.
-
-Konteks (pemilik, objek, field, cipher) dipakai sebagai AAD, jadi kunci yang dipindah
-ke baris/pemilik lain tidak akan bisa dibuka.
-"""
 import os
 
 from Crypto.Cipher import AES
@@ -25,4 +20,4 @@ def unwrap(kek: bytes, blob: bytes, aad: bytes) -> bytes:
     try:
         return c.decrypt_and_verify(ct, tag)
     except ValueError as exc:
-        raise IntegrityError("Kunci terbungkus tidak valid untuk konteks ini") from exc
+        raise IntegrityError("Wrapped key is invalid for this context") from exc

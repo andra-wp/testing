@@ -1,19 +1,3 @@
-"""Tiga skema enkripsi yang dipakai aplikasi.
-
-| Skema         | Cipher            | Mode / konstruksi                     | Integritas            |
-|---------------|-------------------|---------------------------------------|-----------------------|
-| AES-256-GCM   | AES, kunci 256 bit| GCM (CTR + GHASH), nonce acak 96 bit  | tag GCM 128 bit       |
-| DES-CBC-HMAC  | DES, kunci 56 bit | CBC, IV acak 64 bit, padding PKCS#7   | HMAC-SHA256 (EtM)     |
-| RC4-HMAC      | RC4, kunci 128 bit| stream, buang 3072 byte awal keystream| HMAC-SHA256 (EtM)     |
-
-ECB tidak dipakai: pola plaintext yang sama menghasilkan blok ciphertext yang sama.
-CBC dan RC4 sendiri tidak menjamin integritas (ciphertext bisa diubah tanpa ketahuan),
-sehingga keduanya dibungkus Encrypt-then-MAC. Setiap item memakai kunci acak baru,
-jadi nonce/IV/kunci RC4 tidak pernah dipakai ulang.
-
-Semua skema mendukung streaming per potongan (chunk) agar video besar tidak perlu
-dimuat utuh ke memori.
-"""
 import hashlib
 import hmac
 import os
@@ -22,11 +6,11 @@ from typing import BinaryIO, Iterator
 from Crypto.Cipher import AES, ARC4, DES
 from Crypto.Util.Padding import pad, unpad
 
-CHUNK_SIZE = 1024 * 1024  # 1 MiB, kelipatan blok 8 dan 16
+CHUNK_SIZE = 1024 * 1024
 
 
 class IntegrityError(Exception):
-    """Ciphertext, IV, tag, atau konteks tidak cocok: data rusak atau dimodifikasi."""
+    pass
 
 
 def read_chunks(src: BinaryIO) -> Iterator[bytes]:
@@ -34,7 +18,6 @@ def read_chunks(src: BinaryIO) -> Iterator[bytes]:
         yield chunk
 
 
-# ---------------------------------------------------------------- AES-GCM
 class _GCMEncryptor:
     def __init__(self, key: bytes, aad: bytes):
         self.iv = os.urandom(12)
@@ -66,10 +49,9 @@ class AESGCMSuite:
         try:
             c.verify(tag)
         except ValueError as exc:
-            raise IntegrityError("Tag AES-GCM tidak cocok") from exc
+            raise IntegrityError("AES-GCM tag mismatch") from exc
 
 
-# ------------------------------------------------- Encrypt-then-MAC (DES, RC4)
 def _new_mac(mac_key: bytes, aad: bytes, iv: bytes):
     m = hmac.new(mac_key, digestmod=hashlib.sha256)
     m.update(len(aad).to_bytes(8, "big") + aad + iv)
@@ -91,12 +73,11 @@ class _EtMSuite:
         return key[: self.enc_key_len], key[self.enc_key_len :]
 
     def _verify_mac(self, mac_key, aad, iv, tag, src: BinaryIO) -> None:
-        """MAC diverifikasi DULU atas seluruh ciphertext, baru didekripsi."""
         m = _new_mac(mac_key, aad, iv)
         for chunk in read_chunks(src):
             m.update(chunk)
         if not hmac.compare_digest(m.digest(), tag):
-            raise IntegrityError(f"HMAC {self.name} tidak cocok")
+            raise IntegrityError(f"{self.name} HMAC mismatch")
         src.seek(0)
 
 
@@ -125,7 +106,7 @@ class _CBCEncryptor:
 
 class DESCBCHMACSuite(_EtMSuite):
     name = "DES-CBC-HMAC"
-    enc_key_len = 8  # 56 bit efektif (8 bit paritas diabaikan)
+    enc_key_len = 8
     block = 8
 
     def encryptor(self, key: bytes, aad: bytes) -> _CBCEncryptor:
@@ -137,19 +118,19 @@ class DESCBCHMACSuite(_EtMSuite):
         ek, mk = self._split(key)
         self._verify_mac(mk, aad, iv, tag, src)
         c = DES.new(ek, DES.MODE_CBC, iv=iv)
-        held = b""  # blok terakhir ditahan sampai akhir untuk membuang padding
+        held = b""
         for chunk in read_chunks(src):
             if len(chunk) % self.block:
-                raise IntegrityError("Panjang ciphertext DES tidak valid")
+                raise IntegrityError("Invalid DES ciphertext length")
             pt = held + c.decrypt(chunk)
             dst.write(pt[: -self.block])
             held = pt[-self.block :]
         if not held:
-            raise IntegrityError("Ciphertext DES kosong")
+            raise IntegrityError("Empty DES ciphertext")
         try:
             dst.write(unpad(held, self.block))
         except ValueError as exc:
-            raise IntegrityError("Padding DES tidak valid") from exc
+            raise IntegrityError("Invalid DES padding") from exc
 
 
 class _StreamEncryptor:
@@ -168,8 +149,8 @@ class _StreamEncryptor:
 
 class RC4HMACSuite(_EtMSuite):
     name = "RC4-HMAC"
-    enc_key_len = 16  # 128 bit
-    DROP = 3072       # buang awal keystream yang bias (RC4-drop[3072])
+    enc_key_len = 16
+    DROP = 3072
 
     def encryptor(self, key: bytes, aad: bytes) -> _StreamEncryptor:
         ek, mk = self._split(key)

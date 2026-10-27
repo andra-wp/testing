@@ -3,24 +3,23 @@ import { useTheme } from '../context/ThemeContext'
 const OPTIONS = [
   {
     value: 'light',
-    label: 'Terang',
+    label: 'Light',
     icon: (
       <path d="M12 4V2m0 20v-2m8-8h2M2 12h2m13.66-5.66 1.41-1.41M4.93 19.07l1.41-1.41m0-11.32L4.93 4.93m14.14 14.14-1.41-1.41M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10Z" />
     ),
   },
-  { value: 'dark', label: 'Gelap', icon: <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /> },
+  { value: 'dark', label: 'Dark', icon: <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /> },
   {
     value: 'system',
-    label: 'Ikuti sistem',
+    label: 'System',
     icon: <path d="M4 5h16v11H4zM8 20h8m-4-4v4" />,
   },
 ]
 
-/** Pilihan tema: Terang / Gelap / Ikuti sistem. Tersimpan di browser. */
 export default function ThemeToggle() {
   const { theme, setTheme } = useTheme()
   return (
-    <div className="inline-flex rounded-lg border border-slate-200 bg-surface p-0.5" role="radiogroup" aria-label="Tema tampilan">
+    <div className="inline-flex rounded-lg border border-slate-200 bg-surface p-0.5" role="radiogroup" aria-label="Display theme">
       {OPTIONS.map((o) => (
         <button
           key={o.value}

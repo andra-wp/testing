@@ -6,9 +6,8 @@ import { ShareToggle } from '../../components/access'
 import { Alert, Field, KycBadge, LengthHint, PageHeader, ProgressBar, Spinner } from '../../components/ui'
 import { CATEGORIES, OFFICER_UNIT, categoryLabel } from '../../lib/constants'
 
-const STEPS = ['Jenis kejadian', 'Kronologi', 'Bukti', 'Kirim']
+const STEPS = ['Incident category', 'Chronology', 'Evidence', 'Submit']
 
-// Local date as YYYY-MM-DD (toISOString() is UTC, which is still "yesterday" before 07:00 WIB)
 function localToday() {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
@@ -22,10 +21,10 @@ export default function NewReport() {
   })
   const [docs, setDocs] = useState([])
   const [videos, setVideos] = useState([])
-  const [notShared, setNotShared] = useState(() => new Set()) // file yang TIDAK diizinkan untuk petugas
-  const [kyc, setKyc] = useState(null) // status verifikasi KTP
+  const [notShared, setNotShared] = useState(() => new Set())
+  const [kyc, setKyc] = useState(null)
   const [error, setError] = useState('')
-  const [progress, setProgress] = useState(null) // [{name, value, status}]
+  const [progress, setProgress] = useState(null)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value })
   const shareExtra = (f) => (
     <ShareToggle
@@ -59,7 +58,7 @@ export default function NewReport() {
       ...docs.map((f) => ({ f, kind: 'dokumen' })),
       ...videos.map((f) => ({ f, kind: 'video' })),
     ]
-    setProgress(queue.map(({ f, kind }) => ({ name: f.name, kind, value: 0, status: 'menunggu' })))
+    setProgress(queue.map(({ f, kind }) => ({ name: f.name, kind, value: 0, status: 'waiting' })))
     const update = (i, patch) => setProgress((p) => p.map((x, j) => (j === i ? { ...x, ...patch } : x)))
 
     let reportId
@@ -73,17 +72,17 @@ export default function NewReport() {
     let failed = 0
     for (let i = 0; i < queue.length; i++) {
       const { f, kind } = queue[i]
-      update(i, { status: 'mengunggah' })
+      update(i, { status: 'uploading' })
       try {
-        await uploadFile(`/reports/${reportId}/attachments`, { kind, file: f, share: String(!notShared.has(f)) }, (v) => update(i, { value: v, status: v >= 1 ? 'mengenkripsi' : 'mengunggah' }))
-        update(i, { value: 1, status: 'tersimpan' })
+        await uploadFile(`/reports/${reportId}/attachments`, { kind, file: f, share: String(!notShared.has(f)) }, (v) => update(i, { value: v, status: v >= 1 ? 'encrypting' : 'uploading' }))
+        update(i, { value: 1, status: 'saved' })
       } catch (e) {
         failed++
-        update(i, { status: `gagal: ${e.message}` })
+        update(i, { status: `failed: ${e.message}` })
       }
     }
     if (failed === 0) navigate(`/pelapor/laporan/${reportId}`)
-    else setError(`Laporan terkirim, tetapi ${failed} file gagal diunggah. Anda bisa menambahkannya dari halaman laporan.`)
+    else setError(`Report submitted, but ${failed} files failed to upload. You can add them from the report page.`)
     setForm((f) => ({ ...f, _doneId: reportId }))
   }
 
@@ -91,23 +90,23 @@ export default function NewReport() {
   if (!kyc.can_create_report) {
     return (
       <>
-        <PageHeader title="Buat Laporan" />
+        <PageHeader title="Create Report" />
         <div className="card mx-auto max-w-xl space-y-4 p-8 text-center">
           <KycBadge status={kyc.status} />
           <h2 className="text-lg font-semibold text-slate-900">
-            {kyc.status === 'verifikasi_ulang' ? 'Pembuatan laporan ditutup sementara' : 'Verifikasi KTP diperlukan'}
+            {kyc.status === 'verifikasi_ulang' ? 'Report creation temporarily closed' : 'ID verification required'}
           </h2>
           <p className="text-sm text-slate-600">
             {{
-              belum: 'Sebelum membuat laporan, unggah KTP Anda untuk diverifikasi petugas. Cukup sekali; laporan berikutnya tidak perlu KTP lagi.',
-              menunggu: 'KTP Anda sedang diverifikasi petugas. Anda dapat membuat laporan setelah terverifikasi.',
-              ditolak: 'Verifikasi KTP ditolak. Unggah ulang KTP sesuai catatan petugas.',
-              verifikasi_ulang: 'Petugas meminta verifikasi ulang identitas Anda. Unggah ulang KTP untuk membuka kembali pembuatan laporan.',
+              belum: 'Before submitting a report, upload your ID card for verification by officers. Required only once; subsequent reports do not require an ID card.',
+              menunggu: 'Your ID card is being verified by officers. You can create a report once verified.',
+              ditolak: 'ID verification was rejected. Please re-upload your ID card according to the officer note.',
+              verifikasi_ulang: 'Officers requested re-verification of your identity. Re-upload your ID card to re-enable report submission.',
             }[kyc.status]}
           </p>
-          {kyc.officer_note && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">Catatan petugas: {kyc.officer_note}</p>}
+          {kyc.officer_note && <p className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">Officer note: {kyc.officer_note}</p>}
           <Link to="/pelapor/verifikasi" className="btn-primary">
-            {kyc.status === 'menunggu' ? 'Lihat status verifikasi' : 'Ke halaman verifikasi KTP'}
+            {kyc.status === 'menunggu' ? 'View verification status' : 'Go to ID verification page'}
           </Link>
         </div>
       </>
@@ -116,7 +115,7 @@ export default function NewReport() {
 
   return (
     <>
-      <PageHeader title="Buat Laporan" subtitle="Isi selengkap mungkin. Semua data dienkripsi sebelum disimpan." />
+      <PageHeader title="Create Report" subtitle="Fill in as completely as possible. All data is encrypted before storage." />
       <ol className="mb-6 flex flex-wrap gap-2 text-xs">
         {STEPS.map((s, i) => (
           <li
@@ -149,7 +148,7 @@ export default function NewReport() {
                 </label>
               ))}
             </div>
-            <Field label="Tanggal kejadian (opsional)">
+            <Field label="Incident date (optional)">
               <input type="date" className="input max-w-xs" max={localToday()} value={form.incident_date} onChange={set('incident_date')} />
             </Field>
           </>
@@ -158,24 +157,23 @@ export default function NewReport() {
         {step === 1 && (
           <>
             <Alert kind="info">
-              Tulis sebatas yang Anda nyaman. Anda tidak wajib menceritakan detail yang membuat Anda tidak nyaman, dan
-              informasi bisa ditambahkan nanti lewat pesan kepada petugas.
+              Write as much as you feel comfortable sharing. You are not required to provide details that cause distress, and additional information can be added later via messages to officers.
             </Alert>
-            <Field label="Judul singkat">
-              <input className="input" maxLength={120} placeholder="Contoh: Pesan bernada seksual dari senior di grup kelas" value={form.title} onChange={set('title')} />
+            <Field label="Short title">
+              <input className="input" maxLength={120} placeholder="Example: Sexually suggestive messages from a senior in class group" value={form.title} onChange={set('title')} />
               <LengthHint value={form.title} min={5} max={120} />
             </Field>
-            <Field label="Kronologi">
-              <textarea className="input min-h-40" maxLength={5000} placeholder="Apa yang terjadi, kapan, di mana, dan siapa yang terlibat." value={form.chronology} onChange={set('chronology')} />
+            <Field label="Chronology">
+              <textarea className="input min-h-40" maxLength={5000} placeholder="What happened, when, where, and who was involved." value={form.chronology} onChange={set('chronology')} />
               <LengthHint value={form.chronology} min={20} max={5000} />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Tautan unggahan / lokasi kejadian (opsional)">
-                <input className="input" maxLength={2048} placeholder="https://instagram.com/p/… atau Gedung C lt. 2" value={form.incident_url} onChange={set('incident_url')} />
+              <Field label="Post link / incident location (optional)">
+                <input className="input" maxLength={2048} placeholder="https://instagram.com/p/… or Building C 2nd floor" value={form.incident_url} onChange={set('incident_url')} />
                 <LengthHint value={form.incident_url} max={2048} />
               </Field>
-              <Field label="Pelaku (opsional)">
-                <input className="input" maxLength={200} placeholder="Nama, NIM, atau akun media sosial" value={form.scammer_account} onChange={set('scammer_account')} />
+              <Field label="Perpetrator (optional)">
+                <input className="input" maxLength={200} placeholder="Name, student ID, or social media handle" value={form.scammer_account} onChange={set('scammer_account')} />
                 <LengthHint value={form.scammer_account} max={200} />
               </Field>
             </div>
@@ -184,10 +182,10 @@ export default function NewReport() {
 
         {step === 2 && (
           <>
-            <Field label="Dokumen bukti" hint="Tangkapan layar percakapan, kronologi tertulis, surat keterangan medis/visum, dll.">
+            <Field label="Document evidence" hint="Chat screenshots, written timeline, medical/forensic report, etc.">
               <FilePicker kind="dokumen" files={docs} onChange={setDocs} onError={setError} extra={shareExtra} />
             </Field>
-            <Field label="Video bukti" hint="Rekaman kejadian, atau rekaman layar percakapan/unggahan.">
+            <Field label="Video evidence" hint="Incident footage, or screen recording of chat/posts.">
               <FilePicker kind="video" files={videos} onChange={setVideos} onError={setError} extra={shareExtra} />
             </Field>
           </>
@@ -196,27 +194,25 @@ export default function NewReport() {
         {step === 3 && (
           <>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              <div><dt className="text-slate-500">Jenis</dt><dd className="font-medium">{categoryLabel(form.category)}</dd></div>
-              <div><dt className="text-slate-500">Judul</dt><dd className="font-medium">{form.title}</dd></div>
-              <div><dt className="text-slate-500">Dokumen</dt><dd>{docs.length} file</dd></div>
-              <div><dt className="text-slate-500">Video</dt><dd>{videos.length} file</dd></div>
+              <div><dt className="text-slate-500">Category</dt><dd className="font-medium">{categoryLabel(form.category)}</dd></div>
+              <div><dt className="text-slate-500">Title</dt><dd className="font-medium">{form.title}</dd></div>
+              <div><dt className="text-slate-500">Documents</dt><dd>{docs.length} files</dd></div>
+              <div><dt className="text-slate-500">Videos</dt><dd>{videos.length} files</dd></div>
               <div className="sm:col-span-2">
-                <dt className="text-slate-500">Akses petugas ke bukti</dt>
+                <dt className="text-slate-500">Officer access to evidence</dt>
                 <dd>
                   {evidence.length === 0
-                    ? 'Tidak ada bukti'
-                    : `${sharedCount} dari ${evidence.length} file boleh dilihat petugas` +
-                      (sharedCount < evidence.length ? '; sisanya hanya bisa dilihat bila Anda menyetujui permintaan petugas.' : '.')}
-                  {' '}Scan KTP tidak ikut dibagikan.
+                    ? 'No evidence'
+                    : `${sharedCount} of ${evidence.length} files viewable by officers` +
+                      (sharedCount < evidence.length ? '; the rest can only be viewed if you approve an officer request.' : '.')}
+                  {' '}ID card scan is not shared.
                 </dd>
               </div>
             </dl>
             <label className="flex gap-3 rounded-lg bg-slate-50 p-3 text-xs leading-relaxed text-slate-600">
               <input type="checkbox" className="mt-0.5" checked={form.consent} onChange={set('consent')} />
               <span>
-                Saya menyetujui isi laporan (kronologi, tautan/lokasi, dan identitas pelaku) dibaca petugas {OFFICER_UNIT} untuk penanganan.
-                Identitas saya ditampilkan tersamar kepada petugas. File yang saya izinkan dapat dilihat petugas
-                (tanpa diunduh) sampai laporan ditutup, dan izin itu dapat saya cabut kapan saja.
+                I consent to the contents of this report (chronology, link/location, and perpetrator identity) being read by {OFFICER_UNIT} officers for handling purposes. My identity is displayed masked to officers. Files I authorize may be viewed by officers (without downloading) until the report is closed, and this permission can be revoked at any time.
               </span>
             </label>
             {progress && (
@@ -225,7 +221,7 @@ export default function NewReport() {
                   <li key={i} className="text-sm">
                     <div className="mb-1 flex justify-between gap-2">
                       <span className="truncate">{p.name}</span>
-                      <span className={`shrink-0 text-xs ${p.status.startsWith('gagal') ? 'text-red-600' : 'text-slate-500'}`}>{p.status}</span>
+                      <span className={`shrink-0 text-xs ${p.status.startsWith('failed') ? 'text-red-600' : 'text-slate-500'}`}>{p.status}</span>
                     </div>
                     <ProgressBar value={p.value} />
                   </li>
@@ -237,17 +233,17 @@ export default function NewReport() {
 
         <div className="flex justify-between border-t border-slate-100 pt-4">
           <button className="btn-secondary" disabled={step === 0 || progress} onClick={() => setStep(step - 1)}>
-            Kembali
+            Back
           </button>
           {form._doneId ? (
-            <Link className="btn-primary" to={`/pelapor/laporan/${form._doneId}`}>Lihat laporan</Link>
+            <Link className="btn-primary" to={`/pelapor/laporan/${form._doneId}`}>View report</Link>
           ) : step < STEPS.length - 1 ? (
             <button className="btn-primary" disabled={!canNext} onClick={() => { setError(''); setStep(step + 1) }}>
-              Lanjut
+              Next
             </button>
           ) : (
             <button className="btn-primary" disabled={!canNext || progress} onClick={submit}>
-              {progress ? 'Mengirim…' : 'Kirim laporan'}
+              {progress ? 'Submitting…' : 'Submit report'}
             </button>
           )}
         </div>

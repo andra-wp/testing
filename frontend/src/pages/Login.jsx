@@ -29,7 +29,7 @@ export default function Login() {
   }
 
   return (
-    <AuthShell title="Masuk" subtitle={`Untuk pelapor dan petugas ${OFFICER_UNIT}.`}>
+    <AuthShell title="Sign In" subtitle={`For reporters and ${OFFICER_UNIT} officers.`}>
       <form onSubmit={submit} className="card space-y-4 p-6">
         <Alert>{error}</Alert>
         <Field label="Email">
@@ -42,7 +42,7 @@ export default function Login() {
             onChange={(e) => setForm({ ...form, email: e.target.value })}
           />
         </Field>
-        <Field label="Kata sandi">
+        <Field label="Password">
           <input
             className="input"
             type="password"
@@ -53,12 +53,12 @@ export default function Login() {
           />
         </Field>
         <button className="btn-primary w-full" disabled={busy}>
-          {busy ? 'Memproses…' : 'Masuk'}
+          {busy ? 'Processing…' : 'Sign In'}
         </button>
         <p className="text-center text-sm text-slate-500">
-          Belum punya akun?{' '}
+          Don't have an account?{' '}
           <Link to="/daftar" className="font-medium text-brand-700 hover:underline">
-            Daftar sebagai pelapor
+            Register as a reporter
           </Link>
         </p>
       </form>

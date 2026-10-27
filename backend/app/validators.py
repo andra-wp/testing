@@ -4,20 +4,18 @@ EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 NIK_RE = re.compile(r"^\d{16}$")
 PHONE_RE = re.compile(r"^(\+62|62|0)8\d{7,12}$")
 
-# Kept in sync with CATEGORIES in frontend/src/lib/constants.js
 CATEGORIES = {
-    "kekerasan_seksual": "Kekerasan seksual",
-    "pelecehan_seksual": "Pelecehan seksual verbal/nonfisik",
-    "kbgo": "Kekerasan berbasis gender online (KBGO)",
-    "perundungan": "Perundungan (bullying)",
-    "perundungan_siber": "Perundungan siber (cyberbullying)",
-    "kekerasan_fisik": "Kekerasan fisik",
-    "kekerasan_psikis": "Kekerasan psikis",
-    "lainnya": "Lainnya",
+    "kekerasan_seksual": "Sexual violence",
+    "pelecehan_seksual": "Verbal/non-physical sexual harassment",
+    "kbgo": "Online gender-based violence (OGBV)",
+    "perundungan": "Bullying",
+    "perundungan_siber": "Cyberbullying",
+    "kekerasan_fisik": "Physical violence",
+    "kekerasan_psikis": "Psychological violence",
+    "lainnya": "Other",
 }
 
 STATUSES = ["diterima", "diverifikasi", "ditindaklanjuti", "selesai", "ditolak"]
-# urutan penting: opsi pertama = langkah maju yang wajar, "ditolak" selalu terakhir
 TRANSITIONS = {
     "diterima": ["diverifikasi", "ditolak"],
     "diverifikasi": ["ditindaklanjuti", "ditolak"],
@@ -35,7 +33,6 @@ KIND_RULES = {
     "dokumen": {
         "max_mb": 25,
         "exts": {
-            # chat screenshots are the most common evidence of (cyber)bullying and harassment
             ".jpg": "image/jpeg",
             ".jpeg": "image/jpeg",
             ".png": "image/png",
@@ -68,7 +65,6 @@ MAGIC = {
 
 
 def content_matches_extension(ext: str, head: bytes) -> bool:
-    """Cek magic bytes agar file berbahaya tidak menyamar dengan mengganti ekstensi."""
     if ext in (".mp4", ".mov"):
         return len(head) >= 12 and head[4:8] == b"ftyp"
     if ext in (".txt", ".eml"):

@@ -21,11 +21,11 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader
-        title="Laporan Saya"
-        subtitle="Pantau status laporan dan balas pertanyaan petugas."
+        title="My Reports"
+        subtitle="Track report statuses and reply to officer inquiries."
         action={
           <Link to="/pelapor/lapor-baru" className="btn-primary">
-            + Buat laporan
+            + New report
           </Link>
         }
       />
@@ -34,13 +34,13 @@ export default function Dashboard() {
         <div className="mb-4">
           <Alert kind={ktp.verification.status === 'menunggu' ? 'info' : 'warn'}>
             {{
-              belum: 'Verifikasi KTP diperlukan sebelum Anda dapat membuat laporan.',
-              menunggu: 'KTP Anda sedang diverifikasi petugas. Laporan dapat dibuat setelah terverifikasi.',
-              ditolak: 'Verifikasi KTP ditolak. Unggah ulang KTP untuk dapat membuat laporan.',
-              verifikasi_ulang: 'Petugas meminta verifikasi ulang KTP. Pembuatan laporan ditutup sementara.',
+              belum: 'ID verification is required before you can submit a report.',
+              menunggu: 'Your ID card is being verified by officers. Reports can be submitted once verified.',
+              ditolak: 'ID verification was rejected. Re-upload your ID card to submit reports.',
+              verifikasi_ulang: 'Officers requested ID re-verification. Report submission is temporarily disabled.',
             }[ktp.verification.status]}{' '}
             <Link to="/pelapor/verifikasi" className="font-medium underline">
-              Buka verifikasi KTP
+              Open ID verification
             </Link>
           </Alert>
         </div>
@@ -49,10 +49,10 @@ export default function Dashboard() {
         <Spinner />
       ) : reports.length === 0 ? (
         <div className="card p-10 text-center">
-          <p className="font-medium text-slate-700">Belum ada laporan.</p>
-          <p className="mt-1 text-sm text-slate-500">Mengalami atau menyaksikan kekerasan di kampus? Laporkan di sini dengan aman.</p>
+          <p className="font-medium text-slate-700">No reports yet.</p>
+          <p className="mt-1 text-sm text-slate-500">Experienced or witnessed incidents on campus? Report here securely.</p>
           <Link to="/pelapor/lapor-baru" className="btn-primary mt-4">
-            Buat laporan pertama
+            Submit first report
           </Link>
         </div>
       ) : (
@@ -62,7 +62,7 @@ export default function Dashboard() {
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium text-slate-900">{r.title}</div>
                 <div className="mt-0.5 text-xs text-slate-500">
-                  {r.category_label} · dikirim {formatDate(r.created_at)} · {r.attachment_count} lampiran
+                  {r.category_label} · submitted {formatDate(r.created_at)} · {r.attachment_count} attachments
                 </div>
               </div>
               <StatusBadge status={r.status} />

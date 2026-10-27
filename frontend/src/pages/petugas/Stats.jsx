@@ -14,7 +14,7 @@ export default function Stats() {
 
   return (
     <>
-      <PageHeader title="Statistik" subtitle="Agregat tanpa data pribadi." />
+      <PageHeader title="Statistics" subtitle="Aggregates without personal data." />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         <div className="card p-4">
           <div className="text-xs text-slate-500">Total</div>
@@ -29,7 +29,7 @@ export default function Stats() {
       </div>
 
       <section className="card mt-6 p-5">
-        <h2 className="mb-4 font-semibold">Laporan per jenis</h2>
+        <h2 className="mb-4 font-semibold">Reports by category</h2>
         <ul className="space-y-2">
           {s.by_category.map((c) => (
             <li key={c.category} className="grid grid-cols-[minmax(0,12rem)_1fr_2.5rem] items-center gap-3 text-sm">
@@ -44,21 +44,21 @@ export default function Stats() {
       </section>
 
       <section className="card mt-6 p-5">
-        <h2 className="font-semibold">Kinerja enkripsi dari unggahan nyata</h2>
+        <h2 className="font-semibold">Encryption performance from actual uploads</h2>
         <p className="mb-4 text-xs text-slate-500">
-          Dihitung dari waktu enkripsi yang dicatat saat setiap file diunggah. Untuk pengukuran terkontrol, lihat hasil benchmark.
+          Calculated from encryption times recorded when each file was uploaded. For controlled measurements, see benchmark results.
         </p>
         {s.encryption.length === 0 ? (
-          <p className="text-sm text-slate-500">Belum ada file yang diunggah.</p>
+          <p className="text-sm text-slate-500">No files uploaded yet.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left text-xs text-slate-500">
                 <tr>
                   <th className="py-2 font-medium">Cipher</th>
-                  <th className="py-2 text-right font-medium">File</th>
+                  <th className="py-2 text-right font-medium">Files</th>
                   <th className="py-2 text-right font-medium">Total data</th>
-                  <th className="py-2 text-right font-medium">Total waktu</th>
+                  <th className="py-2 text-right font-medium">Total time</th>
                   <th className="py-2 text-right font-medium">Throughput</th>
                 </tr>
               </thead>

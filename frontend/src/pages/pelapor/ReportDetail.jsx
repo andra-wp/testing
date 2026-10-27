@@ -11,7 +11,7 @@ import { STATUS, STATUS_FLOW } from '../../lib/constants'
 import { formatBytes, formatDate, formatMs } from '../../lib/format'
 
 function StatusSteps({ status }) {
-  if (status === 'ditolak') return <Alert kind="error">Laporan ditolak oleh petugas. Lihat catatan di riwayat.</Alert>
+  if (status === 'ditolak') return <Alert kind="error">Report rejected by officers. See notes in history.</Alert>
   const idx = STATUS_FLOW.indexOf(status)
   return (
     <ol className="grid grid-cols-4 gap-2">
@@ -50,7 +50,7 @@ export default function ReportDetail() {
     setError('')
     try {
       const m = await downloadFile(`/attachments/${a.id}/download?cipher=${cipher}`, a.filename)
-      setMsg(`${m.name} didekripsi dengan ${m.cipher} dalam ${formatMs(m.decryptMs)}, integritas: ${m.integrity}.`)
+      setMsg(`${m.name} decrypted with ${m.cipher} in ${formatMs(m.decryptMs)}, integrity: ${m.integrity}.`)
     } catch (e) {
       setError(e.message)
     } finally {
@@ -88,7 +88,6 @@ export default function ReportDetail() {
       for (let i = 0; i < queue.length; i++) {
         const [kind, file] = queue[i]
         await uploadFile(`/reports/${id}/attachments`, { kind, file, share: String(shareNew) }, (v) => setUpProgress((i + v) / queue.length))
-        // Drop each stored file at once, so a later failure cannot make a retry upload it twice
         const drop = kind === 'dokumen' ? setNewDocs : setNewVideos
         drop((list) => list.filter((f) => f !== file))
       }
@@ -96,7 +95,7 @@ export default function ReportDetail() {
       setError(e.message)
     } finally {
       setUpProgress(null)
-      load() // show what was stored, even after a partial failure
+      load()
     }
   }
 
@@ -105,10 +104,10 @@ export default function ReportDetail() {
 
   return (
     <>
-      <Link to="/pelapor" className="text-sm text-brand-700 hover:underline">← Laporan saya</Link>
+      <Link to="/pelapor" className="text-sm text-brand-700 hover:underline">← My reports</Link>
       <PageHeader
         title={report.title}
-        subtitle={`${report.category_label} · dikirim ${formatDate(report.created_at)}`}
+        subtitle={`${report.category_label} · submitted ${formatDate(report.created_at)}`}
         action={<StatusBadge status={report.status} />}
       />
       <div className="space-y-2">
@@ -123,29 +122,29 @@ export default function ReportDetail() {
           </section>
 
           <section className="card space-y-4 p-5">
-            <h2 className="font-semibold text-slate-900">Isi laporan</h2>
+            <h2 className="font-semibold text-slate-900">Report contents</h2>
             <dl className="grid gap-3 text-sm sm:grid-cols-2">
-              <div><dt className="text-slate-500">Tanggal kejadian</dt><dd>{formatDate(report.incident_date, false)}</dd></div>
-              <div><dt className="text-slate-500">Tautan / lokasi kejadian</dt><dd className="break-all">{report.incident_url || '–'}</dd></div>
-              <div><dt className="text-slate-500">Pelaku</dt><dd>{report.scammer_account || '–'}</dd></div>
+              <div><dt className="text-slate-500">Incident date</dt><dd>{formatDate(report.incident_date, false)}</dd></div>
+              <div><dt className="text-slate-500">Link / incident location</dt><dd className="break-all">{report.incident_url || '–'}</dd></div>
+              <div><dt className="text-slate-500">Perpetrator</dt><dd>{report.scammer_account || '–'}</dd></div>
             </dl>
             <div>
-              <div className="text-sm text-slate-500">Kronologi</div>
+              <div className="text-sm text-slate-500">Chronology</div>
               <p className="mt-1 text-sm whitespace-pre-wrap text-slate-800">{report.chronology}</p>
             </div>
           </section>
 
           <section className="card p-5">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-              <h2 className="font-semibold text-slate-900">Lampiran</h2>
+              <h2 className="font-semibold text-slate-900">Attachments</h2>
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                Unduh dari salinan: <CipherSelect value={cipher} onChange={setCipher} />
+                Download from copy: <CipherSelect value={cipher} onChange={setCipher} />
               </div>
             </div>
             <p className="mb-3 flex items-center gap-1.5 text-xs text-slate-500">
-              <LockIcon className="h-3.5 w-3.5" /> Setiap file disimpan tiga kali (AES, DES, RC4). Hanya Anda yang dapat mengunduhnya; petugas hanya bisa melihat file yang Anda izinkan.
+              <LockIcon className="h-3.5 w-3.5" /> Each file is stored three times (AES, DES, RC4). Only you can download it; officers can only view files you have permitted.
             </p>
-            {report.attachments.length === 0 && <p className="text-sm text-slate-500">Belum ada lampiran.</p>}
+            {report.attachments.length === 0 && <p className="text-sm text-slate-500">No attachments yet.</p>}
             <ul className="divide-y divide-slate-100">
               {report.attachments.map((a) => (
                 <li key={a.id} className="py-3">
@@ -154,10 +153,10 @@ export default function ReportDetail() {
                     <span className="min-w-0 flex-1 truncate text-sm">{a.filename}</span>
                     <span className="text-xs text-slate-500">{formatBytes(a.size)}</span>
                     <button className="btn-secondary btn-sm" disabled={busy === `v-${a.id}`} onClick={() => runVerify(a)}>
-                      {busy === `v-${a.id}` ? 'Memeriksa…' : 'Cek 3 cipher'}
+                      {busy === `v-${a.id}` ? 'Checking…' : 'Check 3 ciphers'}
                     </button>
                     <button className="btn-primary btn-sm" disabled={busy === a.id} onClick={() => download(a)}>
-                      {busy === a.id ? 'Mendekripsi…' : 'Unduh'}
+                      {busy === a.id ? 'Decrypting…' : 'Download'}
                     </button>
                   </div>
                   <OwnerAccessPanel attachment={a} closed={closed} onChanged={load} onError={setError} />
@@ -167,7 +166,7 @@ export default function ReportDetail() {
             </ul>
             {!closed && (
               <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
-                <h3 className="text-sm font-medium">Tambah bukti</h3>
+                <h3 className="text-sm font-medium">Add evidence</h3>
                 <div className="grid gap-3 md:grid-cols-2">
                   <FilePicker kind="dokumen" files={newDocs} onChange={setNewDocs} onError={setError} />
                   <FilePicker kind="video" files={newVideos} onChange={setNewVideos} onError={setError} />
@@ -175,7 +174,7 @@ export default function ReportDetail() {
                 <ShareToggle checked={shareNew} onChange={setShareNew} />
                 {upProgress != null && <ProgressBar value={upProgress} />}
                 <button className="btn-primary btn-sm" disabled={upProgress != null || newDocs.length + newVideos.length === 0} onClick={uploadMore}>
-                  {upProgress != null ? 'Mengunggah & mengenkripsi…' : 'Unggah'}
+                  {upProgress != null ? 'Uploading & encrypting…' : 'Upload'}
                 </button>
               </div>
             )}
@@ -183,13 +182,13 @@ export default function ReportDetail() {
         </div>
 
         <aside className="card h-fit space-y-4 p-5">
-          <h2 className="font-semibold text-slate-900">Riwayat & pesan</h2>
+          <h2 className="font-semibold text-slate-900">History & messages</h2>
           <EventTimeline events={report.events} />
           {!closed && (
             <form onSubmit={sendNote} className="space-y-2 border-t border-slate-100 pt-4">
-              <textarea className="input min-h-20" placeholder="Balas atau tambahkan informasi untuk petugas…" maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
+              <textarea className="input min-h-20" placeholder="Reply or add information for officers…" maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
               <LengthHint value={note} min={1} max={2000} />
-              <button className="btn-primary btn-sm" disabled={!note.trim()}>Kirim pesan</button>
+              <button className="btn-primary btn-sm" disabled={!note.trim()}>Send message</button>
             </form>
           )}
         </aside>

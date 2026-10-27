@@ -20,15 +20,15 @@ export default function VerifyQueue() {
 
   return (
     <>
-      <PageHeader title="Verifikasi KTP" subtitle="KTP hanya dapat dibuka selama status menunggu verifikasi. Setelah diputuskan, akses tertutup." />
+      <PageHeader title="ID Verification" subtitle="ID cards can only be opened during pending verification status. Once decided, access is closed." />
       <div className="mb-4 flex flex-wrap gap-1">
         {TABS.map((t) => (
           <button
-            key={t || 'semua'}
+            key={t || 'all'}
             onClick={() => setTab(t)}
             className={`rounded-md px-3 py-1.5 text-sm ${tab === t ? 'bg-brand-50 font-medium text-brand-800' : 'text-slate-600 hover:bg-slate-100'}`}
           >
-            {t ? KYC[t].label : 'Semua'}
+            {t ? KYC[t].label : 'All'}
           </button>
         ))}
       </div>
@@ -36,15 +36,15 @@ export default function VerifyQueue() {
       {!rows ? (
         <Spinner />
       ) : rows.length === 0 ? (
-        <div className="card p-10 text-center text-sm text-slate-500">Tidak ada pelapor di daftar ini.</div>
+        <div className="card p-10 text-center text-sm text-slate-500">No reporters in this list.</div>
       ) : (
         <div className="card overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Pelapor</th>
-                <th className="px-4 py-3 font-medium">KTP diajukan</th>
-                <th className="px-4 py-3 font-medium">Laporan</th>
+                <th className="px-4 py-3 font-medium">Reporter</th>
+                <th className="px-4 py-3 font-medium">ID submitted</th>
+                <th className="px-4 py-3 font-medium">Reports</th>
                 <th className="px-4 py-3 font-medium">Status</th>
               </tr>
             </thead>
@@ -54,7 +54,7 @@ export default function VerifyQueue() {
                   <td className="px-4 py-3 font-mono text-xs">
                     {r.name}
                     {r.is_resubmission && r.status === 'menunggu' && (
-                      <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 font-sans text-[11px] text-amber-800">pengajuan ulang</span>
+                      <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 font-sans text-[11px] text-amber-800">resubmission</span>
                     )}
                   </td>
                   <td className="px-4 py-3 text-slate-500">{formatDate(r.submitted_at)}</td>

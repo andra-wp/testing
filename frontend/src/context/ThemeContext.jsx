@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 
-const KEY = 'lapor_theme' // 'light' | 'dark' | 'system'
+const KEY = 'lapor_theme'
 const ThemeContext = createContext(null)
 const media = () => window.matchMedia('(prefers-color-scheme: dark)')
 
@@ -30,7 +30,6 @@ export function ThemeProvider({ children }) {
     try {
       localStorage.setItem(KEY, theme)
     } catch {
-      /* penyimpanan tidak tersedia: tema tetap berlaku untuk sesi ini */
     }
   }, [theme, dark])
 

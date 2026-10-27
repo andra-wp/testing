@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import { fetchBlob } from '../api/client'
 import { Spinner } from './ui'
 
-// Satu kali "buka" = satu request (React StrictMode menjalankan effect dua kali saat dev,
-// yang akan tercatat sebagai dua kali melihat di audit log).
 const inflight = new Map()
 function loadOnce(source) {
   const key = `${source.path}:${source.openedAt}`
@@ -14,11 +12,6 @@ function loadOnce(source) {
   return inflight.get(key)
 }
 
-/**
- * Pratinjau lampiran untuk petugas: tidak ada tombol unduh, ada tanda air nama petugas + waktu.
- * Ini mengurangi penyebaran dan memberi jejak, bukan perlindungan mutlak (layar tetap bisa difoto).
- */
-/** source = { path: endpoint pratinjau, title, openedAt: Date.now() saat tombol ditekan } */
 export default function SecureViewer({ source, officerName, onClose }) {
   const [state, setState] = useState({ loading: true })
 
@@ -45,7 +38,7 @@ export default function SecureViewer({ source, officerName, onClose }) {
     }
   }, [source, onClose])
 
-  const stamp = `${officerName} · ${new Date().toLocaleString('id-ID')} · RAHASIA`
+  const stamp = `${officerName} · ${new Date().toLocaleString('en-US')} · CONFIDENTIAL`
   const block = (e) => e.preventDefault()
 
   return (
@@ -55,14 +48,14 @@ export default function SecureViewer({ source, officerName, onClose }) {
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium">{source.title}</div>
             <div className="text-xs text-slate-500">
-              Hanya pratinjau. Pembukaan ini tercatat dan terlihat oleh pelapor.
-              {state.extracted && ' Dokumen ditampilkan sebagai teks; format asli tidak dipertahankan.'}
+              Preview only. This access is logged and visible to the reporter.
+              {state.extracted && ' Document displayed as text; original formatting is not preserved.'}
             </div>
           </div>
-          <button className="btn-secondary btn-sm" onClick={onClose}>Tutup</button>
+          <button className="btn-secondary btn-sm" onClick={onClose}>Close</button>
         </div>
         <div className="relative min-h-0 flex-1 overflow-auto bg-slate-100" onContextMenu={block}>
-          {state.loading && <div className="px-4"><Spinner label="Mendekripsi dan memverifikasi…" /></div>}
+          {state.loading && <div className="px-4"><Spinner label="Decrypting and verifying…" /></div>}
           {state.error && <div className="p-6 text-sm text-red-700">{state.error}</div>}
           {state.text != null && (
             <pre className="min-h-full p-6 font-mono text-sm whitespace-pre-wrap text-slate-800 select-text">{state.text}</pre>
@@ -74,9 +67,8 @@ export default function SecureViewer({ source, officerName, onClose }) {
             <video src={state.url} controls controlsList="nodownload noremoteplayback" disablePictureInPicture className="mx-auto max-h-full p-4" />
           )}
           {state.url && state.type === 'application/pdf' && (
-            <iframe src={`${state.url}#toolbar=0`} title="pratinjau" className="h-full min-h-[70vh] w-full" />
+            <iframe src={`${state.url}#toolbar=0`} title="preview" className="h-full min-h-[70vh] w-full" />
           )}
-          {/* tanda air */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
             <div className="absolute -inset-1/2 flex rotate-[-24deg] flex-wrap content-start gap-x-16 gap-y-20 opacity-[0.13]">
               {Array.from({ length: 80 }).map((_, i) => (

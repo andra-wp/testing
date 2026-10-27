@@ -19,21 +19,21 @@ def save_upload(db, upload: UploadFile, *, owner_id: str, kind: str, report_id: 
     ext = Path(filename).suffix.lower()
     if ext not in rules["exts"]:
         allowed = ", ".join(sorted(rules["exts"]))
-        raise HTTPException(415, f"Format {ext or '(tanpa ekstensi)'} tidak didukung untuk {kind}. Gunakan: {allowed}")
+        raise HTTPException(415, f"Format {ext or '(without extension)'} is not supported for {kind}. Use: {allowed}")
 
     max_bytes = min(rules["max_mb"], get_settings().max_upload_mb) * MB
     first = upload.file.read(CHUNK_SIZE)
     if not first:
-        raise HTTPException(400, "File kosong")
+        raise HTTPException(400, "File is empty")
     if not content_matches_extension(ext, first):
-        raise HTTPException(415, "Isi file tidak sesuai dengan ekstensinya")
+        raise HTTPException(415, "File content does not match its extension")
 
     def chunks():
         total, chunk = 0, first
         while chunk:
             total += len(chunk)
             if total > max_bytes:
-                raise HTTPException(413, f"Ukuran maksimal {kind} adalah {max_bytes // MB} MB")
+                raise HTTPException(413, f"Maximum size for {kind} is {max_bytes // MB} MB")
             yield chunk
             chunk = upload.file.read(CHUNK_SIZE)
 
@@ -47,7 +47,7 @@ def save_upload(db, upload: UploadFile, *, owner_id: str, kind: str, report_id: 
         "INSERT INTO attachments (id, owner_id, report_id, kind, mime, size, created_at) VALUES (?,?,?,?,?,?,?)",
         (att_id, owner_id, report_id, kind, mime, size, created),
     )
-    if share and kind != "ktp":  # izin dari pelapor saat mengunggah
+    if share and kind != "ktp":
         access.set_grant(db, {"id": att_id, "kind": kind, "owner_id": owner_id}, "granted", source="submission")
     return {"id": att_id, "kind": kind, "mime": mime, "size": size, "filename": filename, "created_at": created,
             "shared": bool(share and kind != "ktp")}

@@ -1,13 +1,3 @@
-"""Akses petugas CSIRT.
-
-Petugas boleh membaca isi kasus (kategori, kronologi, URL & akun pelaku) yang dibagikan
-pelapor dengan persetujuan, dan setiap pembukaan kasus tercatat di audit log.
-Identitas pelapor tersamar. Scan KTP tidak pernah bisa dilihat.
-
-Lampiran: petugas hanya bisa MELIHAT pratinjau file yang diizinkan pelapor, selama laporan
-masih terbuka. Berkas asli tidak bisa diunduh petugas. Untuk file yang belum diizinkan,
-petugas bisa mengajukan permintaan akses dengan alasan.
-"""
 from urllib.parse import quote
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -24,7 +14,7 @@ from ..services import reports as svc
 from ..services.preview import INLINE_MIMES, TEXT_EXTRACT_MIMES, PreviewUnavailable, extract_text
 from ..validators import CATEGORIES, STATUSES, TRANSITIONS
 
-router = APIRouter(prefix="/api/officer", tags=["petugas"])
+router = APIRouter(prefix="/api/officer", tags=["officer"])
 
 
 class StatusIn(BaseModel):
@@ -78,7 +68,7 @@ def case_detail(report_id: str, user=Depends(require_petugas), db=Depends(get_db
 def change_status(report_id: str, body: StatusIn, user=Depends(require_petugas), db=Depends(get_db)):
     row = svc.get_report_row(db, report_id)
     if body.status not in TRANSITIONS[row["status"]]:
-        raise HTTPException(409, f"Status tidak bisa diubah dari '{row['status']}' ke '{body.status}'")
+        raise HTTPException(409, f"Status cannot be changed from '{row['status']}' to '{body.status}'")
     db.execute("UPDATE reports SET status=? WHERE id=?", (body.status, report_id))
     svc.add_event(db, row, user, type_="status", note=body.note, from_status=row["status"], to_status=body.status)
     audit.log(db, user, "officer.change_status", "report", report_id, f"{row['status']}->{body.status}")
@@ -97,8 +87,8 @@ def add_note(report_id: str, body: NoteIn, user=Depends(require_petugas), db=Dep
 
 def _report_attachment(db, att_id: str):
     att = db.execute("SELECT * FROM attachments WHERE id=?", (att_id,)).fetchone()
-    if att is None or att["report_id"] is None:  # KTP tidak terikat laporan -> tidak terlihat sama sekali
-        raise HTTPException(404, "Lampiran tidak ditemukan")
+    if att is None or att["report_id"] is None:
+        raise HTTPException(404, "Attachment not found")
     return att, svc.get_report_row(db, att["report_id"])
 
 
@@ -106,14 +96,14 @@ def _report_attachment(db, att_id: str):
 def request_access(att_id: str, body: AccessRequestIn, user=Depends(require_petugas), db=Depends(get_db)):
     att, report = _report_attachment(db, att_id)
     if report["status"] in access.CLOSED:
-        raise HTTPException(409, "Laporan sudah ditutup")
+        raise HTTPException(409, "Report is closed")
     current = access.status_of(db, att_id)
     if current in ("granted", "requested"):
-        raise HTTPException(409, "File ini sudah diizinkan" if current == "granted" else "Permintaan sudah dikirim")
+        raise HTTPException(409, "This file is already permitted" if current == "granted" else "Request has already been submitted")
     access.set_grant(db, att, "requested", source="request", requested_by=user["id"], reason=body.reason.strip())
     no = svc.attachment_no(db, att)
     svc.add_event(db, report, user, type_="note",
-                  note=f"Meminta akses ke lampiran {no} ({att['kind']}). Alasan: {body.reason.strip()}")
+                  note=f"Requested access to attachment {no} ({att['kind']}). Reason: {body.reason.strip()}")
     audit.log(db, user, "officer.request_access", "attachment", att_id)
     db.commit()
     return {"status": "requested"}
@@ -121,7 +111,6 @@ def request_access(att_id: str, body: AccessRequestIn, user=Depends(require_petu
 
 @router.get("/attachments/{att_id}/preview")
 def preview(att_id: str, user=Depends(require_petugas), db=Depends(get_db)):
-    """Pratinjau tanpa unduhan berkas asli. Dokumen Office/ODF dikirim sebagai teks hasil ekstraksi."""
     att, report = _report_attachment(db, att_id)
     ok, why = access.can_officer_view(db, att, report)
     if not ok:
@@ -129,10 +118,10 @@ def preview(att_id: str, user=Depends(require_petugas), db=Depends(get_db)):
         db.commit()
         raise HTTPException(403, why)
     if att["mime"] not in INLINE_MIMES | TEXT_EXTRACT_MIMES:
-        raise HTTPException(415, "Pratinjau tidak tersedia untuk format lama ini (.doc/.xls/.ppt). "
-                                 "Minta pelapor mengunggah ulang dalam PDF atau format Office baru.")
-    filename = vault.read_text(db, "attachment", att_id, "filename") or f"lampiran-{att_id[:8]}"
-    path, ms = vault.decrypt_to_tempfile(db, "attachment", att_id, "content")  # AES + cek integritas
+        raise HTTPException(415, "Preview is unavailable for legacy format (.doc/.xls/.ppt). "
+                                 "Request the reporter to re-upload in PDF or modern Office format.")
+    filename = vault.read_text(db, "attachment", att_id, "filename") or f"attachment-{att_id[:8]}"
+    path, ms = vault.decrypt_to_tempfile(db, "attachment", att_id, "content")
     headers = {"Cache-Control": "no-store", "X-Integrity": "verified", "X-Decrypt-Ms": f"{ms:.3f}",
                "Content-Disposition": f"inline; filename*=UTF-8''{quote(filename)}",
                "Content-Security-Policy": "sandbox; default-src 'none'"}
@@ -158,7 +147,6 @@ def preview(att_id: str, user=Depends(require_petugas), db=Depends(get_db)):
 
 @router.get("/stats")
 def stats(user=Depends(require_petugas), db=Depends(get_db)):
-    """Statistik tanpa data pribadi + kinerja enkripsi dari unggahan nyata."""
     by_status = {s: 0 for s in STATUSES}
     for r in db.execute("SELECT status, COUNT(*) n FROM reports GROUP BY status"):
         by_status[r["status"]] = r["n"]
@@ -178,7 +166,7 @@ def stats(user=Depends(require_petugas), db=Depends(get_db)):
            WHERE path IS NOT NULL AND enc_ms > 0
            GROUP BY cipher ORDER BY cipher""")]
     return {"total": sum(by_status.values()), "by_status": by_status,
-            "by_category": by_category, "encryption": crypto}
+        "by_category": by_category, "encryption": crypto}
 
 
 @router.get("/audit")

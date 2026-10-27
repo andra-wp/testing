@@ -1,33 +1,20 @@
-"""Verifikasi KTP pelapor.
-
-Status:
-    belum            -> belum pernah mengunggah KTP
-    menunggu         -> KTP diunggah, menunggu petugas. HANYA di status ini petugas bisa membuka KTP.
-    terverifikasi    -> boleh membuat laporan. Akses petugas ke KTP tertutup.
-    ditolak          -> KTP tidak sesuai/terbaca; pelapor harus mengunggah ulang.
-    verifikasi_ulang -> petugas menemukan dugaan masalah; pembuatan laporan diblokir sampai
-                        pelapor mengunggah ulang KTP dan lolos verifikasi lagi.
-
-Keputusan diikat ke versi file lewat HMAC plaintext, sehingga mengganti KTP selalu
-memicu verifikasi baru.
-"""
 from fastapi import HTTPException
 
 from ..crypto import vault
 from ..db import new_id, now
 
 STATUS_LABEL = {
-    "belum": "Belum mengunggah KTP",
-    "menunggu": "Menunggu verifikasi petugas",
-    "terverifikasi": "Identitas terverifikasi",
-    "ditolak": "Verifikasi ditolak, unggah ulang KTP",
-    "verifikasi_ulang": "Verifikasi ulang diperlukan",
+    "belum": "ID card not yet uploaded",
+    "menunggu": "Pending officer verification",
+    "terverifikasi": "Identity verified",
+    "ditolak": "Verification rejected, please re-upload ID card",
+    "verifikasi_ulang": "Re-verification required",
 }
 EVENT_LABEL = {
-    "diajukan": "KTP diajukan untuk verifikasi",
-    "terverifikasi": "Identitas diverifikasi",
-    "ditolak": "Verifikasi ditolak",
-    "verifikasi_ulang": "Ditandai perlu verifikasi ulang",
+    "diajukan": "ID card submitted for verification",
+    "terverifikasi": "Identity verified",
+    "ditolak": "Verification rejected",
+    "verifikasi_ulang": "Flagged as requiring re-verification",
 }
 VIEW_ACTION = "officer.view_ktp"
 
@@ -44,7 +31,6 @@ def status_of(db, user_id: str) -> str:
     st = get_state(db, user_id)
     if st:
         return st["status"]
-    # data lama: KTP sudah ada sebelum fitur verifikasi -> anggap menunggu
     return "menunggu" if ktp_attachment(db, user_id) else "belum"
 
 
@@ -82,28 +68,26 @@ def _set(db, user_id, status, att_id=None, decided_by=None) -> None:
     )
 
 
-# ------------------------------------------------------------------ alur
 def submitted(db, user, att_id: str) -> None:
-    """Dipanggil setiap KTP diunggah/diganti: verifikasi lama tidak berlaku lagi."""
     _set(db, user["id"], "menunggu", att_id=att_id)
     _event(db, user["id"], "diajukan", user, att_id)
 
 
 def decide(db, officer, user_id: str, decision: str, note: str | None) -> None:
     if status_of(db, user_id) != "menunggu":
-        raise HTTPException(409, "KTP ini tidak sedang menunggu verifikasi")
+        raise HTTPException(409, "This ID card is not awaiting verification")
     att = ktp_attachment(db, user_id)
     if att is None:
-        raise HTTPException(409, "Pelapor belum mengunggah KTP")
+        raise HTTPException(409, "Reporter has not uploaded an ID card")
     if decision == "ditolak" and not (note and len(note.strip()) >= 5):
-        raise HTTPException(422, "Alasan penolakan wajib diisi")
+        raise HTTPException(422, "Rejection reason is required")
     _set(db, user_id, decision, att_id=att["id"], decided_by=officer["id"])
     _event(db, user_id, decision, officer, att["id"], note)
 
 
 def flag(db, officer, user_id: str, reason: str) -> None:
     if status_of(db, user_id) != "terverifikasi":
-        raise HTTPException(409, "Hanya identitas yang sudah terverifikasi yang dapat ditandai bermasalah")
+        raise HTTPException(409, "Only verified identities can be flagged as having issues")
     _set(db, user_id, "verifikasi_ulang", decided_by=officer["id"])
     att = ktp_attachment(db, user_id)
     _event(db, user_id, "verifikasi_ulang", officer, att["id"] if att else None, reason)
@@ -113,10 +97,10 @@ def require_verified(db, user_id: str) -> None:
     st = status_of(db, user_id)
     if st != "terverifikasi":
         raise HTTPException(403, {
-            "belum": "Unggah dan verifikasi KTP terlebih dahulu sebelum membuat laporan.",
-            "menunggu": "KTP Anda sedang diverifikasi petugas. Laporan bisa dibuat setelah terverifikasi.",
-            "ditolak": "Verifikasi KTP ditolak. Unggah ulang KTP untuk diverifikasi kembali.",
-            "verifikasi_ulang": "Petugas meminta verifikasi ulang KTP. Pembuatan laporan ditutup sementara.",
+            "belum": "Please upload and verify your ID card before submitting reports.",
+            "menunggu": "Your ID card is being verified by officers. Reports can be submitted once verified.",
+            "ditolak": "ID verification was rejected. Please re-upload your ID card to be re-verified.",
+            "verifikasi_ulang": "Officers requested ID re-verification. Report submission is temporarily disabled.",
         }[st])
 
 
@@ -124,19 +108,18 @@ def officer_can_view(db, user_id: str) -> bool:
     return status_of(db, user_id) == "menunggu" and ktp_attachment(db, user_id) is not None
 
 
-# ------------------------------------------------------------------ tampilan
 def _name(db, uid):
     try:
-        return vault.read_text(db, "user", uid, "full_name") or "Petugas"
+        return vault.read_text(db, "user", uid, "full_name") or "Officer"
     except Exception:
-        return "Petugas"
+        return "Officer"
 
 
 def history(db, user_id: str) -> list[dict]:
     rows = db.execute("SELECT * FROM ktp_events WHERE user_id=? ORDER BY created_at, rowid", (user_id,)).fetchall()
     return [{
         "action": r["action"], "label": EVENT_LABEL[r["action"]],
-        "actor_role": r["actor_role"], "actor": _name(db, r["actor_id"]) if r["actor_role"] == "petugas" else "Pelapor",
+        "actor_role": r["actor_role"], "actor": _name(db, r["actor_id"]) if r["actor_role"] == "petugas" else "Reporter",
         "note": vault.read_text(db, "ktp_event", r["id"], "note") if r["has_note"] else None,
         "created_at": r["created_at"],
     } for r in rows]

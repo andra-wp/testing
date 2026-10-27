@@ -33,7 +33,7 @@ export default function Profile() {
 
   const deleteAccount = () =>
     act(async () => {
-      if (!window.confirm('Semua laporan, lampiran, KTP, dan data pribadi Anda akan dihapus permanen. Lanjutkan?')) return
+      if (!window.confirm('All your reports, attachments, ID card, and personal data will be permanently deleted. Continue?')) return
       await api.del('/me', { password: delPass })
       logout()
       navigate('/login')
@@ -41,7 +41,7 @@ export default function Profile() {
 
   return (
     <>
-      <PageHeader title="Data Saya" subtitle="Lihat, unduh, atau hapus data pribadi Anda (hak subjek data UU PDP)." />
+      <PageHeader title="My Data" subtitle="View, download, or delete your personal data (data subject rights under privacy laws)." />
       <div className="mb-4">
         <Alert>{error}</Alert>
       </div>
@@ -49,7 +49,7 @@ export default function Profile() {
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card p-5">
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-            <h2 className="font-semibold">Identitas</h2>
+            <h2 className="font-semibold">Identity</h2>
             <CipherSelect value={cipher} onChange={setCipher} />
           </div>
           {!profile ? (
@@ -57,7 +57,7 @@ export default function Profile() {
           ) : (
             <>
               <dl className="space-y-3 text-sm">
-                {[['Nama', 'full_name'], ['NIK', 'nik'], ['Nomor HP', 'phone'], ['Email', 'email']].map(([l, k]) => (
+                {[['Full Name', 'full_name'], ['National ID (NIK)', 'nik'], ['Phone Number', 'phone'], ['Email', 'email']].map(([l, k]) => (
                   <div key={k} className="flex justify-between gap-4 border-b border-slate-100 pb-2">
                     <dt className="text-slate-500">{l}</dt>
                     <dd className="font-medium">{profile.data[k]}</dd>
@@ -65,7 +65,7 @@ export default function Profile() {
                 ))}
               </dl>
               <p className="mt-3 text-xs text-slate-500">
-                Didekripsi dari salinan {profile.cipher} dalam {formatMs(profile.decrypt_ms)}, integritas terverifikasi.
+                Decrypted from copy {profile.cipher} in {formatMs(profile.decrypt_ms)}, integrity verified.
               </p>
             </>
           )}
@@ -73,31 +73,31 @@ export default function Profile() {
 
         <section className="card space-y-3 p-5">
           <div className="flex items-center justify-between gap-2">
-            <h2 className="font-semibold">Verifikasi KTP</h2>
+            <h2 className="font-semibold">ID Verification</h2>
             {kyc && <KycBadge status={kyc.status} />}
           </div>
           <p className="text-sm text-slate-500">
-            Scan KTP, riwayat verifikasi, dan daftar petugas yang pernah membukanya ada di halaman verifikasi.
+            ID card scan, verification history, and officers who have viewed it are on the verification page.
           </p>
-          <Link to="/pelapor/verifikasi" className="btn-secondary btn-sm">Buka halaman verifikasi</Link>
+          <Link to="/pelapor/verifikasi" className="btn-secondary btn-sm">Open verification page</Link>
         </section>
 
         <section className="card space-y-3 p-5">
-          <h2 className="font-semibold">Unduh semua data saya</h2>
-          <p className="text-sm text-slate-500">Profil, status verifikasi, isi laporan, riwayat, dan daftar lampiran dalam satu file JSON.</p>
-          <button className="btn-secondary btn-sm" onClick={() => act(() => downloadFile('/me/export', 'data-saya.json'))}>
-            Unduh JSON
+          <h2 className="font-semibold">Download all my data</h2>
+          <p className="text-sm text-slate-500">Profile, verification status, report contents, history, and attachment list in a single JSON file.</p>
+          <button className="btn-secondary btn-sm" onClick={() => act(() => downloadFile('/me/export', 'my-data.json'))}>
+            Download JSON
           </button>
         </section>
 
         <section className="card space-y-3 border-red-200 p-5">
-          <h2 className="font-semibold text-red-700">Hapus akun</h2>
+          <h2 className="font-semibold text-red-700">Delete account</h2>
           <p className="text-sm text-slate-500">
-            Kunci enkripsi dan semua ciphertext Anda dihapus, sehingga data tidak dapat dipulihkan siapa pun.
+            Encryption keys and all your ciphertext will be deleted, rendering data irrecoverable by anyone.
           </p>
-          <input className="input" type="password" placeholder="Kata sandi untuk konfirmasi" value={delPass} onChange={(e) => setDelPass(e.target.value)} />
+          <input className="input" type="password" placeholder="Password for confirmation" value={delPass} onChange={(e) => setDelPass(e.target.value)} />
           <button className="btn-danger btn-sm" disabled={!delPass} onClick={deleteAccount}>
-            Hapus akun permanen
+            Permanently delete account
           </button>
         </section>
       </div>

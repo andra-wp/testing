@@ -1,4 +1,3 @@
-// Token disimpan di sessionStorage: hilang saat tab ditutup.
 const TOKEN_KEY = 'lapor_siber_token'
 
 export const tokenStore = {
@@ -43,7 +42,6 @@ async function handleError(res) {
   try {
     message = formatDetail((await res.json()).detail) || message
   } catch {
-    /* bukan JSON */
   }
   throw new ApiError(res.status, message)
 }
@@ -69,7 +67,6 @@ export const api = {
   del: (p, b) => request(p, { method: 'DELETE', body: b }),
 }
 
-/** Unggah file dengan progres (fetch belum mendukung progres upload). */
 export function uploadFile(path, fields, onProgress) {
   return new Promise((resolve, reject) => {
     const form = new FormData()
@@ -84,12 +81,11 @@ export function uploadFile(path, fields, onProgress) {
       try {
         data = JSON.parse(xhr.responseText)
       } catch {
-        /* kosong */
       }
       if (xhr.status >= 200 && xhr.status < 300) resolve(data)
-      else reject(new ApiError(xhr.status, formatDetail(data?.detail) || `Unggah gagal (${xhr.status})`))
+      else reject(new ApiError(xhr.status, formatDetail(data?.detail) || `Upload failed (${xhr.status})`))
     }
-    xhr.onerror = () => reject(new ApiError(0, 'Koneksi ke server terputus'))
+    xhr.onerror = () => reject(new ApiError(0, 'Connection to server lost'))
     xhr.send(form)
   })
 }
@@ -102,15 +98,13 @@ function filenameFrom(disposition, fallback) {
   return plain ? plain[1] : fallback
 }
 
-/** Ambil file terautentikasi sebagai blob untuk ditampilkan (tanpa menyimpan ke disk). */
 export async function fetchBlob(path) {
   const res = await fetch(`/api${path}`, { headers: authHeaders() })
   if (!res.ok) await handleError(res)
   return { blob: await res.blob(), headers: res.headers }
 }
 
-/** Unduh file terautentikasi lalu simpan lewat browser. Mengembalikan metadata dekripsi. */
-export async function downloadFile(path, fallbackName = 'unduhan') {
+export async function downloadFile(path, fallbackName = 'download') {
   const res = await fetch(`/api${path}`, { headers: authHeaders() })
   if (!res.ok) await handleError(res)
   const blob = await res.blob()

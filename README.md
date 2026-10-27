@@ -1,39 +1,36 @@
-# Lapor Siber — Portal Pelaporan Phishing & Insiden Siber
+# Safe Report — Phishing & Cyber Incident Reporting Portal
 
-Portal untuk **CSIRT sebuah instansi/kampus**. Korban atau saksi phishing, penipuan online, dan peretasan
-akun mengirim laporan beserta bukti. Petugas CSIRT memverifikasi dan menindaklanjuti laporan tersebut.
+Portal for a **Campus/Institutional CSIRT (Computer Security Incident Response Team)**. Victims or witnesses of phishing, online fraud, and account takeovers submit incident reports along with supporting evidence. CSIRT officers verify and respond to these reports.
 
-Bukti laporan hampir selalu memuat data korban: mutasi rekening, foto KTP yang sudah dikirim ke penipu,
-rekaman layar percakapan. Jika bocor, data ini bisa dipakai untuk penipuan lanjutan. Karena itu semua data
-pengguna dienkripsi sebelum disimpan, dan hanya pemiliknya yang bisa mengambilnya kembali secara utuh.
+Report evidence almost always contains sensitive victim data: bank statements, photos of identity cards already sent to scammers, chat screen recordings. If breached, this data could be weaponized for secondary fraud. Therefore, all user data is encrypted prior to storage, and only the data owner can retrieve the original files.
 
 - **Frontend:** React + Tailwind CSS (Vite)
 - **Backend:** FastAPI + Uvicorn, pycryptodome
-- **Database:** SQLite (modul `sqlite3` bawaan Python)
-- Dijalankan secara lokal
+- **Database:** SQLite (built-in Python `sqlite3` module)
+- Runs locally
 
 ---
 
-## Menjalankan
+## Running the Application
 
-Prasyarat: Python 3.11+ dan Node.js 20+.
+Prerequisites: Python 3.11+ and Node.js 20+.
 
-**1. Backend** (terminal pertama)
+**1. Backend** (first terminal)
 
 ```bash
 cd backend
 python -m venv .venv
-# Windows: .venv\Scripts\activate    Linux/macOS: source .venv/bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 
-python -m scripts.init_env                     # buat .env (kunci acak) + database
-python -m scripts.create_officer --email petugas@csirt.local --name "Petugas Satu"
+python -m scripts.init_env
+python -m scripts.create_officer --email officer@csirt.local --name "Officer One"
 uvicorn app.main:app --reload --port 8000
 ```
 
-Dokumentasi API otomatis: http://localhost:8000/docs
+Interactive API documentation: http://localhost:8000/docs
 
-**2. Frontend** (terminal kedua)
+**2. Frontend** (second terminal)
 
 ```bash
 cd frontend
@@ -41,230 +38,127 @@ npm install
 npm run dev
 ```
 
-Buka http://localhost:5173. Daftar sebagai pelapor lewat halaman *Daftar*. Akun petugas hanya dibuat
-lewat skrip di atas, tidak bisa mendaftar dari web.
+Open http://localhost:5173. Register as a reporter via the *Register* page. Officer accounts can only be created via the CLI script above and cannot register via the web UI.
 
-> `.env` berisi MASTER_KEY. Jika file ini hilang, semua data terenkripsi tidak bisa dibuka lagi.
-> Jangan di-commit (sudah ada di `.gitignore`).
+> `.env` contains the MASTER_KEY. If this key is lost, all encrypted data cannot be decrypted.
+> Do not commit `.env` (it is ignored in `.gitignore`).
 
-**3. Tes & benchmark**
+**3. Tests & benchmarks**
 
 ```bash
 cd backend
-python -m pytest -q                        # 59 tes: kripto, kontrol akses, izin petugas, verifikasi KTP, integritas
-python -m benchmark.run_benchmark --pin    # ±3 menit, hasil di benchmark/results/
-python -m benchmark.run_benchmark --quick  # versi cepat
+python -m pytest -q
+python -m benchmark.run_benchmark --pin
+python -m benchmark.run_benchmark --quick
 ```
 
 ---
 
-## Struktur proyek
+## Project Structure
 
 ```
 lapor-siber/
 ├── backend/
 │   ├── app/
-│   │   ├── main.py              # aplikasi FastAPI, CORS, error handler integritas
-│   │   ├── config.py            # baca .env (kunci, path)
-│   │   ├── db.py, schema.sql    # SQLite: hanya metadata + tabel encrypted_items
-│   │   ├── security.py          # bcrypt, JWT, blind index email, cek peran
-│   │   ├── validators.py        # NIK, HP, kategori, aturan file + magic bytes, masking
-│   │   ├── audit.py             # audit log akses data
+│   │   ├── main.py              # FastAPI application, CORS, integrity error handling
+│   │   ├── config.py            # Environment configuration (keys, paths)
+│   │   ├── db.py, schema.sql    # SQLite: metadata + encrypted_items table
+│   │   ├── security.py          # bcrypt, JWT, email blind index, role checks
+│   │   ├── validators.py        # National ID, phone, categories, magic bytes validation, masking
+│   │   ├── audit.py             # Data access audit logging
 │   │   ├── crypto/
 │   │   │   ├── suites.py        # AES-256-GCM, DES-CBC-HMAC, RC4-HMAC (streaming)
-│   │   │   ├── keywrap.py       # envelope encryption dengan MASTER_KEY
-│   │   │   └── vault.py         # simpan 3 salinan, dekripsi + verifikasi, crypto-shredding
-│   │   ├── services/            # lampiran, laporan, izin akses (access.py), pratinjau (preview.py), verifikasi KTP (kyc.py)
+│   │   │   ├── keywrap.py       # Envelope encryption using MASTER_KEY
+│   │   │   └── vault.py         # Multi-cipher storage, decryption + verification, crypto-shredding
+│   │   ├── services/            # Attachments, reports, access grants, preview, KYC verification
 │   │   └── routers/
-│   │       ├── auth.py          # daftar, masuk, /me
-│   │       ├── me.py            # profil, KTP, ekspor data, hapus akun
-│   │       ├── reports.py       # laporan milik pelapor
-│   │       ├── attachments.py   # unduh (pemilik saja), cek 3 cipher, kelola izin petugas
-│   │       ├── officer.py       # antrian, kasus, status, minta akses, pratinjau, statistik, audit
-│   │       └── verifications.py # verifikasi KTP oleh petugas
+│   │       ├── auth.py          # Register, login, /me
+│   │       ├── me.py            # Profile, ID card, data export, account deletion
+│   │       ├── reports.py       # Reporter report management
+│   │       ├── attachments.py   # Secure downloads, 3-cipher verification, access control
+│   │       ├── officer.py       # Queue, case management, status, request access, preview, stats, audit
+│   │       └── verifications.py # ID verification by officers
 │   ├── scripts/                 # init_env, create_officer
 │   ├── benchmark/
-│   │   ├── run_benchmark.py     # evaluasi AES vs DES vs RC4
-│   │   └── results/             # summary.md (dengan interpretasi), CSV, JSON, grafik
+│   │   ├── run_benchmark.py     # Evaluation of AES vs DES vs RC4
+│   │   └── results/             # summary.md, CSV, JSON, charts
 │   └── tests/
 └── frontend/
-    ├── vite.config.js           # proxy /api → localhost:8000
+    ├── vite.config.js           # Proxy /api → localhost:8000
     └── src/
-        ├── api/client.js        # fetch + token, unggah dengan progres, unduh blob
-        ├── context/            # AuthContext, ThemeContext (Terang/Gelap/Ikuti sistem)
-        ├── components/          # Layout, FilePicker, SecureViewer, ThemeToggle, access.jsx (izin), ui.jsx (LengthHint), dll.
+        ├── api/client.js        # fetch + token, upload with progress, blob download
+        ├── context/             # AuthContext, ThemeContext (Light/Dark/System)
+        ├── components/          # Layout, FilePicker, SecureViewer, ThemeToggle, access, ui, etc.
         └── pages/
             ├── Login.jsx, Register.jsx
-            ├── pelapor/         # Dashboard, NewReport (wizard), ReportDetail, Verification, Profile
+            ├── pelapor/         # Dashboard, NewReport, ReportDetail, Verification, Profile
             └── petugas/         # Queue, CaseDetail, VerifyQueue, VerifyDetail, Stats, AuditLog
 ```
 
 ---
 
-## Data yang disimpan dan klasifikasinya
+## Data Classification and Storage Treatment
 
-Dasar: UU No. 27 Tahun 2022 tentang Pelindungan Data Pribadi (UU PDP) dan GDPR.
+Based on personal data protection regulations (e.g. GDPR):
 
-| Data | Contoh | Kategori | Perlakuan |
+| Data | Example | Category | Treatment |
 |---|---|---|---|
-| Nama, NIK, nomor HP, email | identitas pelapor | Data pribadi umum (UU PDP Pasal 4 ayat 3; GDPR Pasal 4(1)) | Dienkripsi. Petugas melihat versi tersamar |
-| Scan KTP | foto, NIK, alamat, tanggal lahir | Data pribadi umum yang sangat mudah disalahgunakan | Dienkripsi, hanya pemilik yang bisa mengunduh. Dipakai untuk verifikasi identitas pelapor |
-| Dokumen kantor | mutasi rekening, invoice palsu, email (.eml) | Sering memuat **data keuangan pribadi = data pribadi spesifik** (Pasal 4 ayat 2) | Dienkripsi, hanya pemilik yang bisa mengunduh |
-| Video | rekaman layar chat, video call penipu | Wajah dan suara korban (data pribadi) | Dienkripsi, hanya pemilik yang bisa mengunduh |
-| Judul, kronologi, URL, akun pelaku | isi laporan | Dapat memuat data pribadi korban | Dienkripsi; dibaca petugas atas persetujuan pelapor, setiap akses tercatat |
-| Nama file lampiran, catatan/pesan | `mutasi-budi.pdf` | Dapat memuat data pribadi | Dienkripsi |
-| ID, status, kategori, waktu, ukuran file | metadata sistem | Bukan data pribadi | Teks biasa (dibutuhkan untuk antrian & statistik) |
-
-Prinsip UU PDP yang diterapkan:
-
-- **Persetujuan** (Pasal 20): dicatat saat daftar dan saat mengirim laporan.
-- **Minimisasi & pembatasan tujuan**: petugas hanya melihat yang dibutuhkan untuk menangani kasus; identitas tersamar, file tidak bisa dibuka.
-- **Hak akses & portabilitas**: halaman *Data Saya* → unduh semua data dalam JSON.
-- **Hak penghapusan**: hapus akun menghapus kunci dan ciphertext (*crypto-shredding*).
-- **Keamanan pemrosesan** (Pasal 35) & akuntabilitas: enkripsi, kontrol akses, audit log tanpa data pribadi.
+| Name, National ID, Phone number, Email | Reporter identity | General personal data | Encrypted. Officers only view masked format |
+| ID Card scan | Photo, ID number, address, DOB | Sensitive personal data vulnerable to identity theft | Encrypted, only owner can download. Used once for identity verification |
+| Incident documents | Account statements, fake invoices, email (.eml) | Specific / financial personal data | Encrypted, only owner can download |
+| Video evidence | Chat screen recordings, scammer video call | Biometric / victim voice and face | Encrypted, only owner can download |
+| Title, chronology, URL, perpetrator handle | Report contents | May contain victim personal data | Encrypted; read by officers upon reporter consent, every access logged |
+| Attachment file name, messages | `bank-statement.pdf` | May contain personal data | Encrypted |
+| ID, status, category, timestamp, file size | System metadata | Non-personal data | Plaintext (required for queue management and aggregate metrics) |
 
 ---
 
-## Desain kriptografi
+## Cryptographic Design
 
-Setiap data disimpan **tiga kali**, masing-masing dengan cipher berbeda:
+Each item is stored **three times**, encrypted with three different ciphers:
 
-| Skema | Cipher | Mode / konstruksi | Integritas | Alasan |
+| Scheme | Cipher | Mode / Construction | Integrity | Rationale |
 |---|---|---|---|---|
-| `AES-256-GCM` | AES, kunci 256 bit | GCM, nonce acak 96 bit | tag GCM 128 bit | AEAD: kerahasiaan + integritas sekaligus, dipercepat AES-NI |
-| `DES-CBC-HMAC` | DES, kunci 56 bit | CBC, IV acak, padding PKCS#7 | HMAC-SHA256 (Encrypt-then-MAC) | CBC tidak menjamin integritas, jadi ditambah MAC |
-| `RC4-HMAC` | RC4, kunci 128 bit | stream, buang 3072 byte awal keystream | HMAC-SHA256 (Encrypt-then-MAC) | RC4 *malleable* dan awal keystream-nya bias |
+| `AES-256-GCM` | AES, 256-bit key | GCM, 96-bit random nonce | 128-bit GCM tag | AEAD: native confidentiality + integrity, hardware accelerated (AES-NI) |
+| `DES-CBC-HMAC` | DES, 56-bit key | CBC, random IV, PKCS#7 padding | HMAC-SHA256 (Encrypt-then-MAC) | CBC does not guarantee integrity; augmented with MAC |
+| `RC4-HMAC` | RC4, 128-bit key | Stream cipher, drop 3072 keystream bytes | HMAC-SHA256 (Encrypt-then-MAC) | RC4 is malleable and initial keystream is biased |
 
-**ECB tidak dipakai**: blok plaintext yang sama menghasilkan blok ciphertext yang sama, sehingga pola data
-(misalnya struktur file) terlihat. Tes `test_same_plaintext_different_ciphertext` membuktikan hal ini tidak terjadi.
+**ECB is not used**: identical plaintext blocks produce identical ciphertext blocks, leaking data patterns. Tests verify that identical inputs yield distinct ciphertexts.
 
-**Manajemen kunci (envelope encryption).** Setiap item × cipher mendapat kunci acak baru. Kunci itu dibungkus
-`MASTER_KEY` dengan AES-256-GCM dan disimpan di samping ciphertext. Dengan begitu, nonce/IV/kunci RC4 tidak
-pernah dipakai ulang, risiko Sweet32 pada DES hilang, dan penghapusan akun cukup dengan menghapus kunci terbungkus.
+**Key management (envelope encryption):** Every item × cipher receives a unique random Data Encryption Key (DEK). This DEK is wrapped under the `MASTER_KEY` (Key Encryption Key) using AES-256-GCM and stored adjacent to the ciphertext. Nonce/IV/RC4 keys are never reused. Account deletion is executed via crypto-shredding (deleting the wrapped DEK and ciphertext).
 
-**Pengikatan konteks.** Pemilik, jenis objek, ID, nama field, dan cipher dipakai sebagai AAD/isi MAC.
-Ciphertext atau kunci yang dipindahkan ke baris/pengguna lain akan gagal diverifikasi.
+**Context binding:** Owner ID, object type, ref ID, field name, and cipher name are bound as Additional Authenticated Data (AAD) and MAC inputs. Ciphertexts or keys moved across rows or users fail authentication.
 
-**Data kembali utuh.** Saat disimpan, HMAC dari plaintext asli (dengan `INTEGRITY_KEY`) dicatat. Saat diambil:
-buka kunci → verifikasi tag/HMAC ciphertext → dekripsi → bandingkan HMAC plaintext. File hanya dikirim jika
-semuanya cocok; kalau tidak, server menjawab error dan tidak mengirim apa pun. Tombol **Cek 3 cipher** di
-halaman laporan mendekripsi ketiga salinan dan menunjukkan bahwa semuanya identik dengan aslinya.
-
-**Lain-lain.** Kata sandi di-hash bcrypt. Email disimpan sebagai *blind index* (HMAC) untuk login, dan email
-aslinya dienkripsi. File besar dienkripsi per potongan 1 MiB sehingga video 200 MB tidak dimuat utuh ke memori.
-Jenis file dicek dari *magic bytes*, bukan hanya ekstensinya.
-
-## Siapa boleh melihat apa
-
-| | Pelapor (pemilik) | Pelapor lain | Petugas | Tanpa login |
-|---|---|---|---|---|
-| Profil lengkap (nama, NIK, HP, email) | ✓ | – | tersamar | – |
-| Isi laporan (kronologi, URL, akun pelaku) | ✓ | – | ✓ (tercatat di audit) | – |
-| Unduh berkas asli (KTP, dokumen, video) | ✓ | – | – | – |
-| Lihat dokumen & video bukti | ✓ | – | hanya pratinjau, **jika diizinkan pelapor** | – |
-| Scan KTP | ✓ | – | pratinjau **hanya saat menunggu verifikasi** | – |
-| Ubah status kasus | – | – | ✓ | – |
-
-Lampiran milik orang lain menghasilkan 404, sehingga keberadaan file tidak terungkap.
-
-### Verifikasi KTP
-
-Pelapor wajib lolos verifikasi KTP **sekali** sebelum dapat membuat laporan. Tujuannya mencegah laporan
-palsu (misalnya melaporkan rekening orang lain) dan memastikan pelapor adalah korban, karena bank dan
-kepolisian umumnya mensyaratkan identitas korban yang jelas. Setelah terverifikasi, laporan berikutnya
-tidak perlu KTP lagi.
-
-| Status | Arti | Bisa membuat laporan? | Petugas bisa membuka KTP? |
-|---|---|---|---|
-| `belum` | belum mengunggah KTP | tidak | tidak |
-| `menunggu` | KTP diunggah atau diunggah ulang | tidak | **ya, hanya di status ini** |
-| `terverifikasi` | cocok dengan data pendaftaran | ya | tidak (akses tertutup) |
-| `ditolak` | buram atau tidak cocok; catatan wajib | tidak | tidak, sampai pelapor mengunggah ulang |
-| `verifikasi_ulang` | petugas menemukan dugaan masalah; alasan wajib | **tidak (ditutup sementara)** | tidak, sampai pelapor mengunggah ulang |
-
-- Verifikasi dilakukan oleh petugas biasa (halaman *Verifikasi KTP*). Selama `menunggu`, petugas melihat
-  pratinjau KTP (viewer bertanda air, tanpa unduh) dan nama serta NIK pendaftaran yang utuh untuk dicocokkan.
-  Setelah keputusan, keduanya tertutup otomatis.
-- Dugaan masalah bisa dilaporkan dari halaman verifikasi atau dari tautan di halaman kasus. Pelapor harus
-  mengunggah ulang KTP. Akses petugas terbuka lagi hanya untuk KTP baru itu. Laporan lama tetap berjalan.
-- Setiap keputusan diikat ke versi file lewat HMAC plaintext. Mengganti KTP, termasuk KTP yang sudah
-  terverifikasi, selalu memulai verifikasi baru.
-- Pelapor melihat status, catatan petugas, riwayat keputusan, dan daftar petugas yang pernah membuka KTP-nya.
-- Endpoint: `/api/me/ktp` (pelapor), `/api/officer/verifications` (antrian),
-  `/api/officer/verifications/{user_id}` (detail), `.../ktp` (pratinjau), `.../decision`, `.../flag`.
-  Tabel: `ktp_verifications` (status terkini) dan `ktp_events` (riwayat, catatan terenkripsi).
-
-### Izin akses lampiran untuk petugas
-
-Secara bawaan hanya pemilik yang bisa mengambil datanya. Petugas mendapat akses hanya lewat
-**pendelegasian dari pemilik** yang spesifik, per file, dan bisa dicabut.
-
-1. **Saat mengirim laporan**, setiap dokumen dan video punya pilihan *"Izinkan petugas melihat file ini"*
-   (aktif secara bawaan, bisa dimatikan). Teks persetujuan menyebut siapa yang melihat, untuk apa,
-   sampai kapan, dan bahwa izin bisa dicabut. Scan KTP tidak punya pilihan ini.
-2. **Ruang lingkup:** izin berlaku untuk **semua petugas**, hanya selama laporan belum ditutup
-   (status *selesai* atau *ditolak* menutup akses otomatis).
-3. **Pelapor tetap memegang kendali:** di halaman laporan, setiap file punya panel *Akses petugas*
-   untuk mengizinkan atau mencabut izin, beserta riwayat siapa yang membuka file dan kapan.
-4. **Permintaan akses:** untuk file yang belum diizinkan, petugas menekan *Minta akses* dengan alasan
-   wajib diisi (minimal 10 karakter). Pelapor melihat nama petugas dan alasannya, lalu memilih *Setujui*
-   atau *Tolak*. Permintaan dan keputusan juga masuk ke riwayat laporan.
-5. **Cara petugas melihat:** viewer di browser, tanpa tombol unduh, dengan tanda air nama petugas dan
-   waktu. PDF, gambar, teks, dan video ditampilkan langsung. Dokumen .docx/.xlsx/.pptx/.odt ditampilkan
-   sebagai teks hasil ekstraksi di server, sehingga berkas aslinya tidak pernah keluar. Format lama
-   (.doc/.xls/.ppt) tidak bisa dipratinjau; petugas diminta meminta versi PDF.
-6. Server tetap mendekripsi dari salinan AES dengan verifikasi integritas penuh, dan setiap pembukaan
-   (serta penolakan) tercatat di audit log.
-
-Viewer tanpa tombol unduh bukan perlindungan mutlak, karena layar tetap bisa difoto. Perlindungan yang
-sebenarnya adalah izin per file, batas waktu, dan jejak audit yang terlihat oleh pelapor.
-
-Endpoint terkait: `PUT /api/attachments/{id}/access` (pelapor: `grant`/`deny`/`revoke`),
-`POST /api/officer/attachments/{id}/request-access`, `GET /api/officer/attachments/{id}/preview`.
-Tabel: `access_grants` (satu baris per lampiran, status terkini).
+**Full integrity verification:** During storage, an HMAC of the original plaintext is computed with `INTEGRITY_KEY`. During retrieval: unwrap key → verify ciphertext tag/HMAC → decrypt → verify plaintext HMAC. If any check fails, decryption aborts without releasing plaintext. The **Check 3 ciphers** tool decrypts all three copies and verifies bitwise equality with the original.
 
 ---
 
-## Evaluasi AES vs DES vs RC4
+## Access Control
 
-Lihat **`backend/benchmark/results/summary.md`** untuk tabel lengkap beserta interpretasinya. Ringkasan dari mesin uji:
+| | Reporter (Owner) | Other Reporters | Officers | Unauthenticated |
+|---|---|---|---|---|
+| Full Profile (Name, ID, Phone, Email) | ✓ | – | Masked | – |
+| Report Content (Chronology, Link, Handle) | ✓ | – | ✓ (Audit logged) | – |
+| Download Original Files (ID card, docs, video) | ✓ | – | – | – |
+| View Evidence (Docs & Video) | ✓ | – | Preview only, **if granted by reporter** | – |
+| ID Card Scan | ✓ | – | Preview **only while pending verification** | – |
+| Update Case Status | – | – | ✓ | – |
 
-| | AES-256-GCM | DES-CBC-HMAC | RC4-HMAC |
-|---|---|---|---|
-| Throughput video 64 MB | ±770 MB/s | ±19 MB/s | ±160 MB/s |
-| Video 200 MB (enkripsi) | ±0,3 s | ±10,5 s | ±1,2 s |
-| NIK 16 byte | ±120 µs | ±90 µs | ±90 µs |
-| Manipulasi bit terdeteksi | 100% | 100% | 100% (tanpa HMAC: 0%) |
-| Kelemahan terukur | – | kunci 56 bit, blok 64 bit | bias keystream (drop=0: 1,9× peluang acak) |
+Unauthorized access attempts return 404 to avoid leaking resource existence.
 
-Apa yang diukur dan mengapa:
+### ID Card Verification
 
-1. **Waktu per jenis data dalam skenario** (NIK, kronologi, scan KTP, dokumen, video) memakai skema yang persis sama dengan aplikasi → berapa lama pengguna menunggu.
-2. **Primitif murni vs HMAC** → memisahkan biaya cipher dari biaya integritas.
-3. **Biaya tetap per item** → menjelaskan mengapa urutan cipher berbeda untuk data kecil.
-4. **Uji manipulasi**: bit-flip acak dan serangan terarah (mengubah nominal kerugian), dengan dan tanpa MAC.
-5. **Kelemahan nyata**: bias RC4 (uji statistik), laju brute-force DES, batas birthday blok 64 bit.
+Reporters must pass identity verification **once** before filing reports. This prevents fraudulent submissions and ensures victim identity integrity. Subsequent reports do not require identity re-upload.
 
-Agar hasilnya dapat dipercaya: data acak, potongan disiapkan di luar pengukuran, pemanasan, GC dimatikan,
-pengulangan agar tiap sampel ≥ 20 ms, banyak sampel, dilaporkan median + kuartil + CV, dan opsi `--pin` ke 1 core.
-Halaman **Statistik** petugas juga menampilkan throughput dari unggahan sungguhan sebagai pembanding.
+- Verification is performed by officers via the *ID Verification* dashboard. While status is `menunggu` (pending), officers can view a watermarked preview of the ID card alongside unmasked registration data for cross-checking. Once a decision is finalized, access is immediately revoked.
+- If irregularities arise, officers can request re-verification, which temporarily pauses new report creation until a new ID card is verified.
 
-**Kesimpulan untuk skenario ini:** AES-256-GCM dipakai sebagai salinan utama untuk semua akses. DES dan RC4
-disimpan untuk memenuhi tugas dan sebagai pembanding. Konsekuensinya perlu dicatat: tiga salinan berarti
-disk 3×, waktu proses unggahan menjadi jumlah ketiganya (didominasi DES), dan kerahasiaan data hanya sekuat
-salinan terlemah (DES 56 bit). Di sistem nyata hanya AES yang seharusnya disimpan.
+### Evidence Access Delegation
 
-## Tampilan
+By default, only the reporter can access their files. Officers obtain viewing access exclusively through **explicit owner delegation**:
 
-- **Mode gelap:** tombol di kanan atas (Terang / Gelap / Ikuti sistem), tersimpan di browser dan dipasang
-  sebelum halaman dirender agar tidak berkedip. Implementasinya memetakan ulang variabel warna Tailwind v4
-  di `src/index.css` (class `.dark` pada `<html>`), sehingga komponen tidak perlu ditulis dua kali.
-- **Info panjang input:** setiap isian yang punya batas menampilkan minimal/maksimal dan jumlah karakter
-  secara langsung (komponen `LengthHint`). Batasnya sama dengan validasi backend, misalnya judul 5–120,
-  kronologi 20–5000, kata sandi 10–64, NIK tepat 16 digit, dan alasan permintaan akses minimal 10.
-
-## Batasan (proyek lokal)
-
-- MASTER_KEY ada di `.env`. Di produksi seharusnya disimpan di KMS/HSM.
-- Belum ada rate limiting login, HTTPS, atau antivirus untuk file yang diunggah.
-- Pendaftaran membalas "email sudah terdaftar", yang memungkinkan enumerasi email.
+1. **During submission**, documents and videos have an *"Allow officers to view this file"* option (enabled by default, can be toggled off). ID card scans cannot be shared this way.
+2. **Scope:** Permission applies to **all officers**, valid only while the report is open. Closing the report automatically revokes viewing permissions.
+3. **Owner control:** Reporters can grant or revoke officer access at any time from the report details page, with a complete access audit log.
+4. **Access requests:** For unshared files, officers can submit an access request with a mandatory reason. Reporters can approve or deny the request.
+5. **Secure viewer:** Files are previewed inside the browser without download options, overlaid with a dynamic watermark containing the officer's name, timestamp, and confidentiality notice. Modern Office documents are converted to plain text on the server so raw files are never exposed.

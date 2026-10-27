@@ -1,13 +1,3 @@
-"""Penyimpanan terenkripsi: setiap data disimpan tiga kali (AES, DES, RC4).
-
-Alur simpan (satu kali baca, tiga enkripsi paralel per chunk):
-    plaintext -> HMAC plaintext (INTEGRITY_KEY)
-              -> [AES-256-GCM | DES-CBC-HMAC | RC4-HMAC] dengan kunci acak per item
-              -> kunci acak dibungkus MASTER_KEY, disimpan di DB
-Alur baca:
-    unwrap kunci -> verifikasi tag/HMAC ciphertext -> dekripsi
-    -> cocokkan HMAC plaintext -> baru diserahkan ke pengguna
-"""
 import hashlib
 import hmac
 import io
@@ -36,8 +26,6 @@ def _aad(ctx: bytes, cipher: str) -> bytes:
 
 
 class _HmacWriter:
-    """Menulis plaintext hasil dekripsi sambil menghitung HMAC-nya."""
-
     def __init__(self, dst, ctx: bytes):
         self.dst = dst
         self.mac = hmac.new(get_settings().integrity_key, ctx, hashlib.sha256)
@@ -49,7 +37,6 @@ class _HmacWriter:
         self.dst.write(data)
 
 
-# ------------------------------------------------------------------ simpan
 def store_stream(
     db: sqlite3.Connection,
     chunks: Iterable[bytes],
@@ -127,10 +114,9 @@ def store_text(db, text: str | None, *, owner_id, ref_type, ref_id, field) -> No
                  ref_id=ref_id, field=field, to_disk=False)
 
 
-# ------------------------------------------------------------------ baca
 def _row(db, ref_type, ref_id, field, cipher):
     if cipher not in SUITES:
-        raise ValueError(f"Cipher tidak dikenal: {cipher}")
+        raise ValueError(f"Unknown cipher: {cipher}")
     return db.execute(
         "SELECT * FROM encrypted_items WHERE ref_type=? AND ref_id=? AND field=? AND cipher=?",
         (ref_type, ref_id, field, cipher),
@@ -138,7 +124,6 @@ def _row(db, ref_type, ref_id, field, cipher):
 
 
 def _decrypt_row(row, dst) -> float:
-    """Dekripsi satu baris ke dst. Melempar IntegrityError bila ada yang tidak cocok."""
     s = get_settings()
     ctx = context(row["owner_id"], row["ref_type"], row["ref_id"], row["field"])
     aad = _aad(ctx, row["cipher"])
@@ -153,7 +138,7 @@ def _decrypt_row(row, dst) -> float:
         suite.decrypt_stream(key, aad, row["iv"], row["tag"], io.BytesIO(row["ciphertext"]), writer)
     ms = (time.perf_counter_ns() - t0) / 1e6
     if writer.size != row["plain_size"] or not hmac.compare_digest(writer.mac.digest(), row["plain_hmac"]):
-        raise IntegrityError("Plaintext hasil dekripsi tidak identik dengan aslinya")
+        raise IntegrityError("Decrypted plaintext is not identical to original")
     return ms
 
 
@@ -172,7 +157,6 @@ def read_text(db, ref_type, ref_id, field, cipher=DEFAULT_CIPHER) -> str | None:
 
 
 def decrypt_to_tempfile(db, ref_type, ref_id, field, cipher=DEFAULT_CIPHER) -> tuple[Path, float]:
-    """Dekripsi file ke file sementara; hanya dikembalikan bila lolos verifikasi."""
     row = _row(db, ref_type, ref_id, field, cipher)
     if row is None:
         raise FileNotFoundError
@@ -190,12 +174,11 @@ def decrypt_to_tempfile(db, ref_type, ref_id, field, cipher=DEFAULT_CIPHER) -> t
 
 
 def verify_all(db, ref_type, ref_id, field) -> list[dict]:
-    """Dekripsi ketiga versi dan laporkan apakah semuanya kembali identik."""
     results = []
     for name in SUITES:
         row = _row(db, ref_type, ref_id, field, name)
         if row is None:
-            results.append({"cipher": name, "ok": False, "error": "tidak ditemukan"})
+            results.append({"cipher": name, "ok": False, "error": "not found"})
             continue
         sink = _NullSink()
         try:
@@ -217,14 +200,12 @@ class _NullSink:
         pass
 
 
-# ------------------------------------------------------------------ hapus
 def delete_ref(db, ref_type: str, ref_id: str) -> None:
     _delete_rows(db, db.execute(
         "SELECT id, path FROM encrypted_items WHERE ref_type=? AND ref_id=?", (ref_type, ref_id)).fetchall())
 
 
 def delete_owner(db, owner_id: str) -> None:
-    """Crypto-shredding: hapus kunci terbungkus + ciphertext milik pengguna."""
     _delete_rows(db, db.execute(
         "SELECT id, path FROM encrypted_items WHERE owner_id=?", (owner_id,)).fetchall())
 

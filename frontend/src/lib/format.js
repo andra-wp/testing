@@ -9,7 +9,7 @@ export function formatBytes(n) {
 export function formatDate(iso, withTime = true) {
   if (!iso) return '–'
   const d = new Date(iso)
-  return d.toLocaleString('id-ID', {
+  return d.toLocaleString('en-US', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

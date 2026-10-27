@@ -8,7 +8,7 @@ const DOT = {
 }
 
 export default function KycHistory({ history }) {
-  if (!history?.length) return <p className="text-sm text-slate-500">Belum ada riwayat.</p>
+  if (!history?.length) return <p className="text-sm text-slate-500">No history yet.</p>
   return (
     <ol className="relative space-y-3 border-l border-slate-200 pl-5">
       {[...history].reverse().map((h, i) => (

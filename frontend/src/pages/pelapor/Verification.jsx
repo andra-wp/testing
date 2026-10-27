@@ -9,13 +9,13 @@ import { OFFICER_UNIT } from '../../lib/constants'
 import { formatBytes, formatDate } from '../../lib/format'
 
 const EXPLAIN = {
-  belum: { kind: 'info', text: 'Unggah scan KTP Anda. Setelah diverifikasi petugas, Anda dapat membuat laporan.' },
-  menunggu: { kind: 'info', text: 'KTP Anda sedang menunggu verifikasi petugas. Laporan dapat dibuat setelah terverifikasi.' },
-  terverifikasi: { kind: 'success', text: 'Identitas Anda terverifikasi. Anda dapat membuat laporan tanpa mengunggah KTP lagi.' },
-  ditolak: { kind: 'error', text: 'Verifikasi ditolak. Perbaiki sesuai catatan petugas lalu unggah ulang KTP.' },
+  belum: { kind: 'info', text: 'Upload your ID card scan. Once verified by officers, you can submit reports.' },
+  menunggu: { kind: 'info', text: 'Your ID card is awaiting officer verification. Reports can be submitted once verified.' },
+  terverifikasi: { kind: 'success', text: 'Your identity is verified. You can submit reports without uploading your ID card again.' },
+  ditolak: { kind: 'error', text: 'Verification rejected. Make adjustments according to officer notes and re-upload your ID card.' },
   verifikasi_ulang: {
     kind: 'warn',
-    text: 'Petugas menemukan dugaan masalah pada identitas Anda. Pembuatan laporan ditutup sementara sampai Anda mengunggah ulang KTP dan lolos verifikasi.',
+    text: 'Officers found potential issues with your identity. Report submission is temporarily disabled until you re-upload your ID card and pass verification.',
   },
 }
 
@@ -34,14 +34,14 @@ export default function Verification() {
 
   const upload = async () => {
     const st = info.verification.status
-    if (st === 'terverifikasi' && !window.confirm('Mengganti KTP akan memulai verifikasi baru. Selama menunggu, Anda tidak dapat membuat laporan. Lanjutkan?')) return
+    if (st === 'terverifikasi' && !window.confirm('Replacing your ID card will start a new verification. While waiting, you will not be able to create reports. Continue?')) return
     setError('')
     setMsg('')
     setProgress(0)
     try {
       await uploadFile('/me/ktp', { file: file[0] }, setProgress)
       setFile([])
-      setMsg('KTP terenkripsi dan diajukan untuk verifikasi.')
+      setMsg('ID card encrypted and submitted for verification.')
       await load()
     } catch (e) {
       setError(e.message)
@@ -57,62 +57,60 @@ export default function Verification() {
 
   return (
     <>
-      <PageHeader title="Verifikasi KTP" subtitle="Identitas pelapor diverifikasi sekali sebelum dapat membuat laporan." action={<KycBadge status={v.status} />} />
+      <PageHeader title="ID Verification" subtitle="Reporter identity is verified once before reports can be submitted." action={<KycBadge status={v.status} />} />
       <div className="mb-4 space-y-2">
         <Alert>{error}</Alert>
         <Alert kind="success">{msg}</Alert>
         <Alert kind={ex.kind}>
           {ex.text}
           {v.status === 'terverifikasi' && (
-            <> <Link to="/pelapor/lapor-baru" className="font-medium underline">Buat laporan</Link></>
+            <> <Link to="/pelapor/lapor-baru" className="font-medium underline">Create report</Link></>
           )}
         </Alert>
         {v.officer_note && (
           <Alert kind={v.status === 'ditolak' ? 'error' : 'warn'}>
-            <span className="font-medium">Catatan petugas:</span> {v.officer_note}
+            <span className="font-medium">Officer note:</span> {v.officer_note}
           </Alert>
         )}
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card space-y-4 p-5">
-          <h2 className="font-semibold">{needUpload ? 'Unggah KTP' : 'KTP Anda'}</h2>
+          <h2 className="font-semibold">{needUpload ? 'Upload ID Card' : 'Your ID Card'}</h2>
           {info.exists && (
             <div className="flex flex-wrap items-center gap-3 rounded-lg bg-slate-50 px-3 py-2 text-sm">
               <span className="min-w-0 flex-1 truncate">{info.filename}</span>
               <span className="text-xs text-slate-500">{formatBytes(info.size)} · {formatDate(info.created_at)}</span>
               <button className="btn-secondary btn-sm" onClick={() => api.get(`/attachments/${info.id}/verify`).then(setCheck).catch((e) => setError(e.message))}>
-                Cek 3 cipher
+                Check 3 ciphers
               </button>
               <button className="btn-secondary btn-sm" onClick={() => downloadFile(`/attachments/${info.id}/download`, info.filename).catch((e) => setError(e.message))}>
-                Unduh
+                Download
               </button>
             </div>
           )}
           <VerifyResult result={check} />
-          <Field label={needUpload ? 'Scan atau foto KTP' : 'Ganti KTP'} hint="Pastikan seluruh kartu terlihat jelas dan NIK terbaca.">
+          <Field label={needUpload ? 'Scan or photo of ID card' : 'Replace ID card'} hint="Make sure the entire card is visible and the ID number is legible.">
             <FilePicker kind="ktp" files={file} onChange={setFile} multiple={false} onError={setError} />
           </Field>
           {progress != null && <ProgressBar value={progress} />}
           <button className="btn-primary" disabled={!file.length || progress != null} onClick={upload}>
-            {needUpload ? 'Ajukan verifikasi' : 'Ganti & ajukan ulang'}
+            {needUpload ? 'Submit for verification' : 'Replace & resubmit'}
           </button>
           <p className="text-xs leading-relaxed text-slate-500">
-            KTP dienkripsi dan hanya Anda yang dapat mengunduhnya. Petugas {OFFICER_UNIT} hanya dapat melihat pratinjaunya
-            selama status <i>menunggu verifikasi</i> untuk mencocokkan nama dan NIK dengan data pendaftaran.
-            Setelah diputuskan, akses petugas tertutup.
+            The ID card is encrypted and only you can download it. {OFFICER_UNIT} officers can only view its preview during the <i>pending verification</i> status to match the name and ID number with registration data. Once a decision is made, officer access is closed.
           </p>
         </section>
 
         <section className="space-y-6">
           <div className="card p-5">
-            <h2 className="mb-3 font-semibold">Riwayat verifikasi</h2>
+            <h2 className="mb-3 font-semibold">Verification history</h2>
             <KycHistory history={info.history} />
           </div>
           <div className="card p-5">
-            <h2 className="mb-1 font-semibold">Petugas yang pernah membuka KTP Anda</h2>
+            <h2 className="mb-1 font-semibold">Officers who have viewed your ID card</h2>
             {info.views.length === 0 ? (
-              <p className="text-sm text-slate-500">Belum pernah dibuka.</p>
+              <p className="text-sm text-slate-500">Never opened yet.</p>
             ) : (
               <ul className="mt-2 space-y-1 text-sm">
                 {info.views.map((w, i) => (

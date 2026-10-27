@@ -19,14 +19,14 @@ export default function Queue() {
 
   return (
     <>
-      <PageHeader title="Antrian Kasus" subtitle="Laporan baru di atas. Identitas pelapor ditampilkan tersamar." />
+      <PageHeader title="Case Queue" subtitle="Newest reports on top. Reporter identity is displayed masked." />
       <div className="mb-4 flex flex-wrap gap-3">
         <select className="input w-auto" value={filters.status} onChange={(e) => setFilters({ ...filters, status: e.target.value })}>
-          <option value="">Semua status</option>
+          <option value="">All statuses</option>
           {Object.entries(STATUS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
         </select>
         <select className="input w-auto" value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })}>
-          <option value="">Semua jenis</option>
+          <option value="">All categories</option>
           {CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
       </div>
@@ -34,17 +34,17 @@ export default function Queue() {
       {!rows ? (
         <Spinner />
       ) : rows.length === 0 ? (
-        <div className="card p-10 text-center text-sm text-slate-500">Tidak ada kasus untuk filter ini.</div>
+        <div className="card p-10 text-center text-sm text-slate-500">No cases found for this filter.</div>
       ) : (
         <div className="card overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-left text-xs text-slate-500">
               <tr>
-                <th className="px-4 py-3 font-medium">Masuk</th>
-                <th className="px-4 py-3 font-medium">Judul</th>
-                <th className="px-4 py-3 font-medium">Jenis</th>
-                <th className="px-4 py-3 font-medium">Pelapor</th>
-                <th className="px-4 py-3 font-medium">Bukti</th>
+                <th className="px-4 py-3 font-medium">Received</th>
+                <th className="px-4 py-3 font-medium">Title</th>
+                <th className="px-4 py-3 font-medium">Category</th>
+                <th className="px-4 py-3 font-medium">Reporter</th>
+                <th className="px-4 py-3 font-medium">Evidence</th>
                 <th className="px-4 py-3 font-medium">Status</th>
               </tr>
             </thead>

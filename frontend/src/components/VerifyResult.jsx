@@ -1,7 +1,6 @@
 import { CIPHERS } from '../lib/constants'
 import { formatBytes, formatMs } from '../lib/format'
 
-/** Hasil dekripsi ketiga salinan (AES, DES, RC4) dari satu file. */
 export default function VerifyResult({ result }) {
   if (!result) return null
   return (
@@ -9,10 +8,10 @@ export default function VerifyResult({ result }) {
       <table className="w-full text-xs">
         <thead className="text-left text-slate-500">
           <tr>
-            <th className="px-3 py-2 font-medium">Salinan</th>
-            <th className="px-3 py-2 font-medium">Utuh?</th>
-            <th className="px-3 py-2 text-right font-medium">Enkripsi</th>
-            <th className="px-3 py-2 text-right font-medium">Dekripsi</th>
+            <th className="px-3 py-2 font-medium">Copy</th>
+            <th className="px-3 py-2 font-medium">Intact?</th>
+            <th className="px-3 py-2 text-right font-medium">Encryption</th>
+            <th className="px-3 py-2 text-right font-medium">Decryption</th>
             <th className="px-3 py-2 text-right font-medium">Ciphertext</th>
             <th className="px-3 py-2 text-right font-medium">Overhead</th>
           </tr>
@@ -22,7 +21,7 @@ export default function VerifyResult({ result }) {
             <tr key={r.cipher} className="border-t border-slate-200">
               <td className="px-3 py-2">{CIPHERS.find((c) => c.value === r.cipher)?.desc ?? r.cipher}</td>
               <td className={`px-3 py-2 font-medium ${r.ok ? 'text-emerald-700' : 'text-red-700'}`}>
-                {r.ok ? '✓ identik' : `✗ ${r.error}`}
+                {r.ok ? '✓ identical' : `✗ ${r.error}`}
               </td>
               <td className="px-3 py-2 text-right tabular-nums">{formatMs(r.enc_ms)}</td>
               <td className="px-3 py-2 text-right tabular-nums">{formatMs(r.decrypt_ms)}</td>

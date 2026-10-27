@@ -10,13 +10,12 @@ PROFILE_FIELDS = ("email", "full_name", "nik", "phone")
 
 
 def get_report_row(db, report_id: str, owner_id: str | None = None):
-    """owner_id diisi untuk pelapor: laporan milik orang lain diperlakukan sebagai tidak ada (404)."""
     if owner_id:
         row = db.execute("SELECT * FROM reports WHERE id=? AND owner_id=?", (report_id, owner_id)).fetchone()
     else:
         row = db.execute("SELECT * FROM reports WHERE id=?", (report_id,)).fetchone()
     if row is None:
-        raise HTTPException(404, "Laporan tidak ditemukan")
+        raise HTTPException(404, "Report not found")
     return row
 
 
@@ -40,9 +39,7 @@ def report_fields(db, report_id: str) -> dict:
 
 
 def list_attachments(db, report, viewer: str) -> list[dict]:
-    """viewer='owner': lengkap + status izin & riwayat siapa yang membuka.
-    viewer='officer': nama file hanya tampil bila petugas diizinkan melihat."""
-    from . import access  # hindari import melingkar
+    from . import access
     rows = db.execute(
         "SELECT * FROM attachments WHERE report_id=? ORDER BY created_at, rowid", (report["id"],)).fetchall()
     out = []
@@ -57,7 +54,6 @@ def list_attachments(db, report, viewer: str) -> list[dict]:
 
 
 def attachment_no(db, att) -> int:
-    """Nomor urut lampiran di laporan (sama dengan yang tampil di UI)."""
     ids = [r["id"] for r in db.execute(
         "SELECT id FROM attachments WHERE report_id=? ORDER BY created_at, rowid", (att["report_id"],))]
     return ids.index(att["id"]) + 1
@@ -78,7 +74,6 @@ def add_event(db, report, actor: dict, *, type_: str, note: str | None = None,
     ev_id = new_id()
     has_note = bool(note and note.strip())
     if has_note:
-        # catatan dienkripsi atas nama pemilik laporan, ikut terhapus bila akun dihapus
         vault.store_text(db, note.strip(), owner_id=report["owner_id"], ref_type="event", ref_id=ev_id, field="note")
     db.execute(
         "INSERT INTO report_events (id, report_id, actor_id, actor_role, type, from_status, to_status, has_note, created_at)"
@@ -90,7 +85,6 @@ def add_event(db, report, actor: dict, *, type_: str, note: str | None = None,
 
 
 def masked_reporter(db, owner_id: str) -> dict:
-    """Server mendekripsi data identitas hanya untuk membuat versi tersamar bagi petugas."""
     p = {f: vault.read_text(db, "user", owner_id, f) for f in PROFILE_FIELDS}
     return {
         "name": mask_name(p["full_name"] or ""),

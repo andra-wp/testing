@@ -1,11 +1,3 @@
-"""Verifikasi KTP oleh petugas.
-
-- KTP hanya bisa dibuka (pratinjau, tanpa unduh) saat status 'menunggu'.
-- Setelah 'terverifikasi' atau 'ditolak', akses tertutup otomatis.
-- Bila ada dugaan masalah, petugas menandai 'verifikasi_ulang': pelapor tidak bisa membuat
-  laporan baru sampai mengunggah ulang KTP dan lolos verifikasi lagi (akses terbuka kembali
-  hanya untuk KTP yang baru diunggah itu).
-"""
 from typing import Literal
 from urllib.parse import quote
 
@@ -21,7 +13,7 @@ from ..security import require_petugas
 from ..services import kyc
 from ..services import reports as svc
 
-router = APIRouter(prefix="/api/officer/verifications", tags=["verifikasi KTP (petugas)"])
+router = APIRouter(prefix="/api/officer/verifications", tags=["verifications"])
 
 ORDER = {"menunggu": 0, "verifikasi_ulang": 1, "ditolak": 2, "terverifikasi": 3, "belum": 4}
 
@@ -38,7 +30,7 @@ class FlagIn(BaseModel):
 def _pelapor(db, user_id: str):
     row = db.execute("SELECT id, created_at FROM users WHERE id=? AND role='pelapor'", (user_id,)).fetchone()
     if row is None:
-        raise HTTPException(404, "Pelapor tidak ditemukan")
+        raise HTTPException(404, "Reporter not found")
     return row
 
 
@@ -82,7 +74,6 @@ def detail(user_id: str, user=Depends(require_petugas), db=Depends(get_db)):
         "views": kyc.views(db, user_id),
     }
     if can_view:
-        # data pendaftaran utuh hanya ditampilkan selama verifikasi, untuk dicocokkan dengan KTP
         att = kyc.ktp_attachment(db, user_id)
         out["registered"] = {"full_name": vault.read_text(db, "user", user_id, "full_name"),
                              "nik": vault.read_text(db, "user", user_id, "nik")}
@@ -98,14 +89,14 @@ def preview_ktp(user_id: str, user=Depends(require_petugas), db=Depends(get_db))
     if not kyc.officer_can_view(db, user_id):
         audit.log(db, user, "officer.view_ktp_denied", "user", user_id)
         db.commit()
-        raise HTTPException(403, "Akses ke KTP tertutup. KTP hanya bisa dibuka saat menunggu verifikasi.")
+        raise HTTPException(403, "Access to ID card is closed. ID card can only be opened while awaiting verification.")
     att = kyc.ktp_attachment(db, user_id)
-    path, ms = vault.decrypt_to_tempfile(db, "attachment", att["id"], "content")  # AES + cek integritas
+    path, ms = vault.decrypt_to_tempfile(db, "attachment", att["id"], "content")
     audit.log(db, user, kyc.VIEW_ACTION, "user", user_id, f"attachment={att['id'][:8]}")
     db.commit()
     return FileResponse(
         path, media_type=att["mime"],
-        headers={"Content-Disposition": f"inline; filename*=UTF-8''{quote('ktp-pratinjau')}",
+        headers={"Content-Disposition": f"inline; filename*=UTF-8''{quote('id-card-preview')}",
                  "Cache-Control": "no-store", "X-Integrity": "verified", "X-Preview": "original",
                  "Content-Security-Policy": "sandbox; default-src 'none'"},
         background=BackgroundTask(path.unlink, missing_ok=True),
@@ -123,7 +114,6 @@ def decision(user_id: str, body: DecisionIn, user=Depends(require_petugas), db=D
 
 @router.post("/{user_id}/flag")
 def flag(user_id: str, body: FlagIn, user=Depends(require_petugas), db=Depends(get_db)):
-    """Dugaan masalah identitas: pelapor wajib verifikasi ulang, pembuatan laporan ditutup sementara."""
     _pelapor(db, user_id)
     kyc.flag(db, user, user_id, body.reason)
     audit.log(db, user, "officer.ktp_flag", "user", user_id)

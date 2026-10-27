@@ -12,7 +12,7 @@ AAD = b"ctx|owner|report|r1|content"
 def _encrypt(suite, key, data, aad=AAD, chunk=1024 * 1024 - 1):
     enc = suite.encryptor(key, aad)
     out = io.BytesIO()
-    for i in range(0, len(data), chunk):  # potongan tidak sejajar blok, sengaja
+    for i in range(0, len(data), chunk):
         out.write(enc.update(data[i:i + chunk]))
     last, tag = enc.finalize()
     out.write(last)
@@ -37,13 +37,12 @@ def test_roundtrip(name, size):
 
 @pytest.mark.parametrize("name", list(SUITES))
 def test_same_plaintext_different_ciphertext(name):
-    """Tidak seperti ECB: data sama, kunci sama -> ciphertext berbeda (IV acak) / kunci per item beda."""
     suite = SUITES[name]
     data = b"A" * 64
     _, _, c1 = _encrypt(suite, suite.new_key(), data)
     _, _, c2 = _encrypt(suite, suite.new_key(), data)
     assert c1 != c2
-    if name == "DES-CBC-HMAC":  # blok identik di plaintext tidak menghasilkan blok identik
+    if name == "DES-CBC-HMAC":
         assert len({c1[i:i + 8] for i in range(0, 64, 8)}) == 8
 
 
@@ -61,7 +60,7 @@ def test_tamper_detected(name, target):
         tag = bytes([tag[0] ^ 1]) + tag[1:]
     elif target == "iv":
         if not iv:
-            pytest.skip("RC4 tidak memakai IV")
+            pytest.skip("RC4 does not use IV")
         iv = bytes([iv[0] ^ 1]) + iv[1:]
     elif target == "aad":
         aad = AAD.replace(b"owner", b"other")

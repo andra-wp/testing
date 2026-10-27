@@ -19,7 +19,7 @@ export default function CaseDetail() {
   const [copied, setCopied] = useState('')
   const { user } = useAuth()
   const [viewing, setViewing] = useState(null)
-  const [requesting, setRequesting] = useState(null) // id lampiran yang sedang diisi alasannya
+  const [requesting, setRequesting] = useState(null)
   const [reason, setReason] = useState('')
 
   const load = useCallback(
@@ -59,47 +59,46 @@ export default function CaseDetail() {
 
   return (
     <>
-      <Link to="/petugas" className="text-sm text-brand-700 hover:underline">← Antrian</Link>
-      <PageHeader title={c.title} subtitle={`${c.category_label} · masuk ${formatDate(c.created_at)}`} action={<StatusBadge status={c.status} />} />
+      <Link to="/petugas" className="text-sm text-brand-700 hover:underline">← Queue</Link>
+      <PageHeader title={c.title} subtitle={`${c.category_label} · received ${formatDate(c.created_at)}`} action={<StatusBadge status={c.status} />} />
       <Alert>{error}</Alert>
       {viewing && <SecureViewer source={viewing} officerName={user.full_name} onClose={closeViewer} />}
 
       <div className="mt-4 grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">
           <section className="card space-y-4 p-5">
-            <h2 className="font-semibold">Detail kejadian</h2>
+            <h2 className="font-semibold">Incident details</h2>
             <dl className="grid gap-4 text-sm sm:grid-cols-2">
-              {[['Tautan / lokasi kejadian', 'incident_url'], ['Pelaku', 'scammer_account']].map(([label, k]) => (
+              {[['Link / incident location', 'incident_url'], ['Perpetrator', 'scammer_account']].map(([label, k]) => (
                 <div key={k}>
                   <dt className="text-slate-500">{label}</dt>
                   <dd className="mt-0.5 flex items-start gap-2">
                     <code className="rounded bg-slate-100 px-1.5 py-0.5 text-xs break-all text-slate-800">{c[k] || '–'}</code>
                     {c[k] && (
                       <button className="text-xs text-brand-700 hover:underline" onClick={() => copy(c[k], k)}>
-                        {copied === k ? 'tersalin' : 'salin'}
+                        {copied === k ? 'copied' : 'copy'}
                       </button>
                     )}
                   </dd>
                 </div>
               ))}
-              <div><dt className="text-slate-500">Tanggal kejadian</dt><dd>{formatDate(c.incident_date, false)}</dd></div>
+              <div><dt className="text-slate-500">Incident date</dt><dd>{formatDate(c.incident_date, false)}</dd></div>
             </dl>
-            <p className="text-xs text-slate-500">Tautan ditampilkan sebagai teks dan tidak bisa diklik, agar petugas tidak membuka atau ikut menyebarkan konten berbahaya tanpa sengaja.</p>
+            <p className="text-xs text-slate-500">Links are displayed as text and cannot be clicked, to prevent officers from accidentally opening or spreading malicious content.</p>
           </section>
 
           <section className="card p-5">
-            <h2 className="mb-2 font-semibold">Kronologi</h2>
+            <h2 className="mb-2 font-semibold">Chronology</h2>
             <p className="text-sm whitespace-pre-wrap text-slate-800">{c.chronology}</p>
           </section>
 
           <section className="card p-5">
-            <h2 className="mb-1 font-semibold">Lampiran</h2>
+            <h2 className="mb-1 font-semibold">Attachments</h2>
             <p className="mb-3 flex items-center gap-1.5 text-xs text-slate-500">
-              <LockIcon className="h-3.5 w-3.5" /> Hanya file yang diizinkan pelapor yang bisa dilihat (pratinjau, tanpa unduh)
-              selama laporan terbuka. Setiap pembukaan tercatat dan terlihat oleh pelapor.
+              <LockIcon className="h-3.5 w-3.5" /> Only files permitted by the reporter can be viewed (preview, no download) during the open report status. Every access is logged and visible to the reporter.
             </p>
             {c.attachments.length === 0 ? (
-              <p className="text-sm text-slate-500">Tidak ada lampiran.</p>
+              <p className="text-sm text-slate-500">No attachments.</p>
             ) : (
               <ul className="divide-y divide-slate-100 text-sm">
                 {c.attachments.map((a) => {
@@ -110,14 +109,14 @@ export default function CaseDetail() {
                       <div className="flex flex-wrap items-center gap-3">
                         <span className="rounded bg-slate-100 px-2 py-0.5 text-xs capitalize">{a.kind}</span>
                         <span className="min-w-0 flex-1 truncate">
-                          {acc.officer_can_view ? a.filename : <span className="text-slate-500">Lampiran {a.no} · {a.mime}</span>}
+                          {acc.officer_can_view ? a.filename : <span className="text-slate-500">Attachment {a.no} · {a.mime}</span>}
                         </span>
                         <span className="text-xs text-slate-500">{formatBytes(a.size)}</span>
                         <AccessBadge status={acc.status} />
                         {acc.officer_can_view ? (
-                          <button className="btn-primary btn-sm" onClick={() => setViewing({ path: `/officer/attachments/${a.id}/preview`, title: a.filename, openedAt: Date.now() })}>Lihat</button>
+                          <button className="btn-primary btn-sm" onClick={() => setViewing({ path: `/officer/attachments/${a.id}/preview`, title: a.filename, openedAt: Date.now() })}>View</button>
                         ) : canRequest ? (
-                          <button className="btn-secondary btn-sm" onClick={() => { setRequesting(a.id); setReason('') }}>Minta akses</button>
+                          <button className="btn-secondary btn-sm" onClick={() => { setRequesting(a.id); setReason('') }}>Request access</button>
                         ) : (
                           <LockIcon className="h-4 w-4 text-slate-400" />
                         )}
@@ -138,7 +137,7 @@ export default function CaseDetail() {
                         >
                           <textarea
                             className="input min-h-16"
-                            placeholder="Alasan (dibaca pelapor), mis. mencocokkan isi rekaman dengan kronologi sebelum memanggil terlapor"
+                            placeholder="Reason (read by reporter), e.g. matching recording contents with chronology before summoning the reported party"
                             minLength={10}
                             maxLength={500}
                             value={reason}
@@ -146,8 +145,8 @@ export default function CaseDetail() {
                           />
                           <LengthHint value={reason} min={10} max={500} />
                           <div className="flex gap-2">
-                            <button className="btn-primary btn-sm" disabled={reason.trim().length < 10}>Kirim permintaan</button>
-                            <button type="button" className="btn-secondary btn-sm" onClick={() => setRequesting(null)}>Batal</button>
+                            <button className="btn-primary btn-sm" disabled={reason.trim().length < 10}>Send request</button>
+                            <button type="button" className="btn-secondary btn-sm" onClick={() => setRequesting(null)}>Cancel</button>
                           </div>
                         </form>
                       )}
@@ -161,29 +160,29 @@ export default function CaseDetail() {
 
         <aside className="space-y-6">
           <section className="card space-y-2 p-5 text-sm">
-            <h2 className="font-semibold">Pelapor (tersamar)</h2>
-            {[['Nama', 'name'], ['NIK', 'nik'], ['HP', 'phone'], ['Email', 'email']].map(([l, k]) => (
+            <h2 className="font-semibold">Reporter (masked)</h2>
+            {[['Name', 'name'], ['National ID', 'nik'], ['Phone', 'phone'], ['Email', 'email']].map(([l, k]) => (
               <div key={k} className="flex justify-between gap-3">
                 <span className="text-slate-500">{l}</span>
                 <span className="font-mono text-xs">{c.reporter[k] ?? '–'}</span>
               </div>
             ))}
             <div className="flex justify-between gap-3">
-              <span className="text-slate-500">Identitas</span>
+              <span className="text-slate-500">Identity</span>
               <KycBadge status={c.reporter.identity.status} />
             </div>
             <Link to={`/petugas/verifikasi/${c.reporter.user_id}`} className="block pt-1 text-xs text-brand-700 hover:underline">
-              Riwayat verifikasi / laporkan masalah identitas →
+              Verification history / report identity issue →
             </Link>
           </section>
 
           {c.allowed_transitions.length > 0 && (
             <section className="card space-y-3 p-5">
-              <h2 className="font-semibold">Ubah status</h2>
+              <h2 className="font-semibold">Change status</h2>
               <select className="input" value={nextStatus} onChange={(e) => setNextStatus(e.target.value)}>
                 {c.allowed_transitions.map((s) => <option key={s} value={s}>{STATUS[s].label}</option>)}
               </select>
-              <textarea className="input min-h-16" placeholder="Catatan untuk pelapor (opsional)" maxLength={2000} value={statusNote} onChange={(e) => setStatusNote(e.target.value)} />
+              <textarea className="input min-h-16" placeholder="Note for reporter (optional)" maxLength={2000} value={statusNote} onChange={(e) => setStatusNote(e.target.value)} />
               <LengthHint value={statusNote} max={2000} />
               <button
                 className="btn-primary btn-sm w-full"
@@ -194,13 +193,13 @@ export default function CaseDetail() {
                   })
                 }
               >
-                Simpan status
+                Save status
               </button>
             </section>
           )}
 
           <section className="card space-y-4 p-5">
-            <h2 className="font-semibold">Riwayat & pesan</h2>
+            <h2 className="font-semibold">History & messages</h2>
             <EventTimeline events={c.events} />
             <form
               className="space-y-2 border-t border-slate-100 pt-4"
@@ -212,9 +211,9 @@ export default function CaseDetail() {
                 })
               }}
             >
-              <textarea className="input min-h-16" placeholder="Tanya pelapor / catatan tindak lanjut…" maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
+              <textarea className="input min-h-16" placeholder="Ask reporter / follow-up notes…" maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
               <LengthHint value={note} min={1} max={2000} />
-              <button className="btn-secondary btn-sm" disabled={!note.trim()}>Kirim pesan</button>
+              <button className="btn-secondary btn-sm" disabled={!note.trim()}>Send message</button>
             </form>
           </section>
         </aside>

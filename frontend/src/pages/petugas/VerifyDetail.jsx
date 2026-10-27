@@ -41,8 +41,8 @@ export default function VerifyDetail() {
 
   return (
     <>
-      <Link to="/petugas/verifikasi" className="text-sm text-brand-700 hover:underline">← Verifikasi KTP</Link>
-      <PageHeader title={`Pelapor ${d.reporter.name}`} subtitle={d.verification.label} action={<KycBadge status={st} />} />
+      <Link to="/petugas/verifikasi" className="text-sm text-brand-700 hover:underline">← ID Verification</Link>
+      <PageHeader title={`Reporter ${d.reporter.name}`} subtitle={d.verification.label} action={<KycBadge status={st} />} />
       <Alert>{error}</Alert>
       {viewing && <SecureViewer source={viewing} officerName={user.full_name} onClose={closeViewer} />}
 
@@ -51,48 +51,48 @@ export default function VerifyDetail() {
           {d.can_view_ktp ? (
             <section className="card space-y-4 p-5">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <h2 className="font-semibold">Cocokkan KTP dengan data pendaftaran</h2>
+                <h2 className="font-semibold">Match ID card with registration data</h2>
                 <button
                   className="btn-primary btn-sm"
-                  onClick={() => setViewing({ path: `/officer/verifications/${userId}/ktp`, title: 'Scan KTP pelapor', openedAt: Date.now() })}
+                  onClick={() => setViewing({ path: `/officer/verifications/${userId}/ktp`, title: 'Reporter ID scan', openedAt: Date.now() })}
                 >
-                  Buka KTP
+                  Open ID card
                 </button>
               </div>
               <dl className="grid gap-3 rounded-lg bg-slate-50 p-4 text-sm sm:grid-cols-2">
-                <div><dt className="text-slate-500">Nama terdaftar</dt><dd className="font-medium">{d.registered.full_name}</dd></div>
-                <div><dt className="text-slate-500">NIK terdaftar</dt><dd className="font-mono font-medium">{d.registered.nik}</dd></div>
+                <div><dt className="text-slate-500">Registered name</dt><dd className="font-medium">{d.registered.full_name}</dd></div>
+                <div><dt className="text-slate-500">Registered ID (NIK)</dt><dd className="font-mono font-medium">{d.registered.nik}</dd></div>
                 <div><dt className="text-slate-500">File</dt><dd>{d.ktp.mime} · {formatBytes(d.ktp.size)}</dd></div>
-                <div><dt className="text-slate-500">Diunggah</dt><dd>{formatDate(d.ktp.uploaded_at)}</dd></div>
+                <div><dt className="text-slate-500">Uploaded</dt><dd>{formatDate(d.ktp.uploaded_at)}</dd></div>
               </dl>
               <p className="text-xs text-slate-500">
-                Data utuh di atas dan KTP hanya tampil selama verifikasi ini. Setelah keputusan disimpan, keduanya tertutup.
+                The complete registration data above and the ID card are only displayed during this verification. After a decision is saved, both become inaccessible.
               </p>
               <fieldset className="space-y-2 text-sm">
-                {[['clear', 'Foto KTP jelas, asli, dan tidak terpotong'], ['name', 'Nama di KTP sama dengan nama terdaftar'], ['nik', 'NIK di KTP sama dengan NIK terdaftar']].map(([k, label]) => (
+                {[['clear', 'ID photo is clear, authentic, and not cropped'], ['name', 'Name on ID card matches registered name'], ['nik', 'ID number on card matches registered ID']].map(([k, label]) => (
                   <label key={k} className="flex items-center gap-2">
                     <input type="checkbox" checked={checks[k]} onChange={(e) => setChecks({ ...checks, [k]: e.target.checked })} />
                     {label}
                   </label>
                 ))}
               </fieldset>
-              <textarea className="input min-h-16" placeholder="Catatan (wajib bila ditolak, dibaca pelapor)" maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
+              <textarea className="input min-h-16" placeholder="Notes (required if rejecting, read by reporter)" maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
               <LengthHint value={note} min={5} max={1000} />
-              <p className="-mt-2 text-xs text-slate-500">Minimal 5 karakter hanya wajib bila menolak.</p>
+              <p className="-mt-2 text-xs text-slate-500">Minimum 5 characters only required when rejecting.</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   className="btn-primary"
                   disabled={!allChecked}
                   onClick={() => act(() => api.post(`/officer/verifications/${userId}/decision`, { decision: 'terverifikasi', note: note || null }))}
                 >
-                  Verifikasi
+                  Verify
                 </button>
                 <button
                   className="btn-danger"
                   disabled={note.trim().length < 5}
                   onClick={() => act(() => api.post(`/officer/verifications/${userId}/decision`, { decision: 'ditolak', note }))}
                 >
-                  Tolak
+                  Reject
                 </button>
               </div>
             </section>
@@ -100,12 +100,12 @@ export default function VerifyDetail() {
             <section className="card flex items-start gap-3 p-5 text-sm text-slate-600">
               <LockIcon className="mt-0.5 h-5 w-5 shrink-0 text-slate-400" />
               <div>
-                <p className="font-medium text-slate-800">Akses ke KTP tertutup</p>
+                <p className="font-medium text-slate-800">Access to ID card closed</p>
                 <p className="mt-1">
-                  {st === 'belum' && 'Pelapor belum mengunggah KTP.'}
-                  {st === 'terverifikasi' && `Identitas sudah diverifikasi pada ${formatDate(d.verification.decided_at)}. Jika ada dugaan masalah, minta verifikasi ulang di bawah.`}
-                  {st === 'ditolak' && 'Verifikasi ditolak. Akses terbuka lagi setelah pelapor mengunggah ulang KTP.'}
-                  {st === 'verifikasi_ulang' && 'Menunggu pelapor mengunggah ulang KTP. Pembuatan laporan oleh pelapor ini ditutup sementara.'}
+                  {st === 'belum' && 'Reporter has not uploaded an ID card.'}
+                  {st === 'terverifikasi' && `Identity already verified on ${formatDate(d.verification.decided_at)}. If there is a suspected issue, request re-verification below.`}
+                  {st === 'ditolak' && 'Verification rejected. Access reopens after reporter re-uploads ID card.'}
+                  {st === 'verifikasi_ulang' && 'Waiting for reporter to re-upload ID card. Report creation for this reporter is temporarily suspended.'}
                 </p>
               </div>
             </section>
@@ -113,14 +113,13 @@ export default function VerifyDetail() {
 
           {st === 'terverifikasi' && (
             <section className="card space-y-3 border-amber-200 p-5">
-              <h2 className="font-semibold">Laporkan dugaan masalah identitas</h2>
+              <h2 className="font-semibold">Report suspected identity issue</h2>
               <p className="text-sm text-slate-500">
-                Pelapor wajib mengunggah ulang KTP dan tidak bisa membuat laporan baru sampai lolos verifikasi lagi.
-                Laporan yang sudah ada tetap berjalan.
+                Reporter must re-upload ID card and cannot submit new reports until verified again. Existing reports continue unaffected.
               </p>
               <textarea
                 className="input min-h-20"
-                placeholder="Alasan (dibaca pelapor), mis. nama di KTP berbeda dengan nama pada bukti yang dilampirkan"
+                placeholder="Reason (read by reporter), e.g. name on ID differs from name in attached evidence"
                 maxLength={1000}
                 value={flagReason}
                 onChange={(e) => setFlagReason(e.target.value)}
@@ -131,7 +130,7 @@ export default function VerifyDetail() {
                 disabled={flagReason.trim().length < 10}
                 onClick={() => act(() => api.post(`/officer/verifications/${userId}/flag`, { reason: flagReason }))}
               >
-                Minta verifikasi ulang
+                Request re-verification
               </button>
             </section>
           )}
@@ -139,8 +138,8 @@ export default function VerifyDetail() {
 
         <aside className="space-y-6">
           <section className="card space-y-2 p-5 text-sm">
-            <h2 className="font-semibold">Data pelapor (tersamar)</h2>
-            {[['Nama', 'name'], ['NIK', 'nik'], ['HP', 'phone'], ['Email', 'email']].map(([l, k]) => (
+            <h2 className="font-semibold">Reporter data (masked)</h2>
+            {[['Name', 'name'], ['National ID', 'nik'], ['Phone', 'phone'], ['Email', 'email']].map(([l, k]) => (
               <div key={k} className="flex justify-between gap-3">
                 <span className="text-slate-500">{l}</span>
                 <span className="font-mono text-xs">{d.reporter[k] ?? '–'}</span>
@@ -148,13 +147,13 @@ export default function VerifyDetail() {
             ))}
           </section>
           <section className="card p-5">
-            <h2 className="mb-3 font-semibold">Riwayat verifikasi</h2>
+            <h2 className="mb-3 font-semibold">Verification history</h2>
             <KycHistory history={d.history} />
           </section>
           <section className="card p-5 text-sm">
-            <h2 className="mb-2 font-semibold">KTP dibuka oleh</h2>
+            <h2 className="mb-2 font-semibold">ID card viewed by</h2>
             {d.views.length === 0 ? (
-              <p className="text-slate-500">Belum pernah.</p>
+              <p className="text-slate-500">Never opened yet.</p>
             ) : (
               <ul className="space-y-1">
                 {d.views.map((v, i) => (

@@ -1,7 +1,3 @@
-"""Pratinjau teks untuk dokumen Office/ODF, agar petugas bisa membaca isinya tanpa mengunduh berkas asli.
-
-Hanya memakai zipfile + regex (tanpa parser XML), dengan batas ukuran untuk mencegah zip bomb.
-"""
 import html
 import re
 import zipfile
@@ -28,7 +24,7 @@ def _read(z: zipfile.ZipFile, name: str, budget: list[int]) -> str:
     info = z.getinfo(name)
     budget[0] -= info.file_size
     if budget[0] < 0:
-        raise PreviewUnavailable("Dokumen terlalu besar untuk pratinjau teks")
+        raise PreviewUnavailable("Document is too large for text preview")
     return z.read(name).decode("utf-8", errors="replace")
 
 
@@ -100,7 +96,7 @@ def extract_text(path: Path, mime: str) -> str:
         with zipfile.ZipFile(path) as z:
             text = EXTRACTORS[mime](z, [MAX_XML_BYTES])
     except (zipfile.BadZipFile, KeyError) as exc:
-        raise PreviewUnavailable("Isi dokumen tidak dapat dibaca") from exc
+        raise PreviewUnavailable("Document content could not be read") from exc
     if len(text) > MAX_TEXT_CHARS:
-        text = text[:MAX_TEXT_CHARS] + "\n\n[... dipotong ...]"
-    return text or "(dokumen tidak berisi teks)"
+        text = text[:MAX_TEXT_CHARS] + "\n\n[... truncated ...]"
+    return text or "(document contains no text)"

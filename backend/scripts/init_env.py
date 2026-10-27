@@ -1,7 +1,3 @@
-"""Membuat .env berisi kunci acak lalu menyiapkan database.
-
-    python -m scripts.init_env
-"""
 import base64
 import os
 import secrets
@@ -14,7 +10,7 @@ ENV = ROOT / ".env"
 
 def main() -> None:
     if ENV.exists():
-        print(f".env sudah ada di {ENV}, tidak ditimpa (kunci lama dibutuhkan untuk membuka data lama).")
+        print(f".env already exists at {ENV}, not overwritten (existing keys are needed to open old data).")
     else:
         k = lambda: base64.b64encode(os.urandom(32)).decode()
         ENV.write_text(
@@ -27,12 +23,12 @@ def main() -> None:
             os.chmod(ENV, 0o600)
         except OSError:
             pass
-        print(f"Kunci baru dibuat di {ENV}. JANGAN dibagikan atau di-commit.")
+        print(f"New keys generated at {ENV}. DO NOT share or commit this file.")
 
     sys.path.insert(0, str(ROOT))
     from app.db import init_db
     init_db()
-    print("Database siap.")
+    print("Database ready.")
 
 
 if __name__ == "__main__":

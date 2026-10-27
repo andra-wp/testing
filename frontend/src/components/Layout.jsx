@@ -6,15 +6,15 @@ import { ShieldIcon } from './ui'
 
 const LINKS = {
   pelapor: [
-    { to: '/pelapor', label: 'Laporan Saya', end: true },
-    { to: '/pelapor/lapor-baru', label: 'Buat Laporan' },
-    { to: '/pelapor/verifikasi', label: 'Verifikasi KTP' },
-    { to: '/pelapor/profil', label: 'Data Saya' },
+    { to: '/pelapor', label: 'My Reports', end: true },
+    { to: '/pelapor/lapor-baru', label: 'Create Report' },
+    { to: '/pelapor/verifikasi', label: 'ID Verification' },
+    { to: '/pelapor/profil', label: 'My Data' },
   ],
   petugas: [
-    { to: '/petugas', label: 'Antrian Kasus', end: true },
-    { to: '/petugas/verifikasi', label: 'Verifikasi KTP' },
-    { to: '/petugas/statistik', label: 'Statistik' },
+    { to: '/petugas', label: 'Case Queue', end: true },
+    { to: '/petugas/verifikasi', label: 'ID Verification' },
+    { to: '/petugas/statistik', label: 'Statistics' },
     { to: '/petugas/audit', label: 'Audit Log' },
   ],
 }
@@ -59,7 +59,7 @@ export default function Layout() {
                 navigate('/login')
               }}
             >
-              Keluar
+              Logout
             </button>
           </div>
         </div>

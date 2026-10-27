@@ -1,4 +1,3 @@
-"""Verifikasi KTP: wajib sebelum membuat laporan, akses petugas hanya saat menunggu, verifikasi ulang bila ada masalah."""
 import os
 
 import pytest
@@ -8,8 +7,8 @@ from conftest import login, make_officer
 
 KTP1 = b"\xff\xd8\xff\xe0" + os.urandom(40_000)
 KTP2 = b"\x89PNG\r\n\x1a\n" + os.urandom(40_000)
-REPORT = {"category": "pelecehan_seksual", "title": "Email palsu dari bank",
-          "chronology": "Saya menerima email yang meminta saya login ulang ke internet banking.", "consent": True}
+REPORT = {"category": "pelecehan_seksual", "title": "Fake email from bank",
+          "chronology": "I received an email requesting me to re-login to internet banking.", "consent": True}
 
 
 @pytest.fixture(scope="module")
@@ -33,13 +32,11 @@ def test_flow(ctx):
     c, officer, owner, uid = ctx
     base = f"/api/officer/verifications/{uid}"
 
-    # 1. belum ada KTP -> tidak bisa membuat laporan, tidak ada yang bisa dibuka petugas
     assert _status(c, owner) == "belum"
     r = c.post("/api/reports", headers=owner, json=REPORT)
-    assert r.status_code == 403 and "KTP" in r.json()["detail"]
+    assert r.status_code == 403 and "ID" in r.json()["detail"]
     assert c.get(f"{base}/ktp", headers=officer).status_code == 403
 
-    # 2. unggah -> menunggu: petugas bisa membuka KTP dan melihat data pendaftaran utuh untuk dicocokkan
     c.post("/api/me/ktp", headers=owner, files={"file": ("ktp.jpg", KTP1, "image/jpeg")})
     assert _status(c, owner) == "menunggu"
     assert c.post("/api/reports", headers=owner, json=REPORT).status_code == 403
@@ -50,15 +47,13 @@ def test_flow(ctx):
     r = c.get(f"{base}/ktp", headers=officer)
     assert r.status_code == 200 and r.content == KTP1 and r.headers["content-disposition"].startswith("inline")
 
-    # 3. ditolak wajib beralasan
     assert c.post(f"{base}/decision", headers=officer, json={"decision": "ditolak"}).status_code == 422
-    c.post(f"{base}/decision", headers=officer, json={"decision": "ditolak", "note": "Foto KTP buram, NIK tidak terbaca"})
+    c.post(f"{base}/decision", headers=officer, json={"decision": "ditolak", "note": "ID photo is blurry, ID number illegible"})
     info = c.get("/api/me/ktp", headers=owner).json()
     assert info["verification"]["status"] == "ditolak"
-    assert info["verification"]["officer_note"] == "Foto KTP buram, NIK tidak terbaca"
-    assert c.get(f"{base}/ktp", headers=officer).status_code == 403  # akses tertutup setelah keputusan
+    assert info["verification"]["officer_note"] == "ID photo is blurry, ID number illegible"
+    assert c.get(f"{base}/ktp", headers=officer).status_code == 403
 
-    # 4. unggah ulang -> menunggu -> terverifikasi -> akses tertutup, laporan bisa dibuat
     c.post("/api/me/ktp", headers=owner, files={"file": ("ktp.png", KTP2, "image/png")})
     assert c.get(f"{base}/ktp", headers=officer).content == KTP2
     assert c.post(f"{base}/decision", headers=officer, json={"decision": "terverifikasi"}).status_code == 200
@@ -68,29 +63,25 @@ def test_flow(ctx):
     assert c.post(f"{base}/decision", headers=officer, json={"decision": "terverifikasi"}).status_code == 409
     assert c.post("/api/reports", headers=owner, json=REPORT).status_code == 201
 
-    # 5. dugaan masalah -> verifikasi ulang: buat laporan diblokir, KTP lama tetap tertutup
-    assert c.post(f"{base}/flag", headers=officer, json={"reason": "pendek"}).status_code == 422
-    r = c.post(f"{base}/flag", headers=officer, json={"reason": "Nama di KTP berbeda dengan pemilik rekening di bukti"})
+    assert c.post(f"{base}/flag", headers=officer, json={"reason": "short"}).status_code == 422
+    r = c.post(f"{base}/flag", headers=officer, json={"reason": "Name on ID card differs from bank account holder in evidence"})
     assert r.status_code == 200 and r.json()["status"] == "verifikasi_ulang"
     r = c.post("/api/reports", headers=owner, json=REPORT)
-    assert r.status_code == 403 and "verifikasi ulang" in r.json()["detail"]
+    assert r.status_code == 403 and "re-verification" in r.json()["detail"].lower()
     assert c.get(f"{base}/ktp", headers=officer).status_code == 403
     info = c.get("/api/me/ktp", headers=owner).json()
-    assert "Nama di KTP berbeda" in info["verification"]["officer_note"]
+    assert "Name on ID card differs" in info["verification"]["officer_note"]
 
-    # 6. pelapor mengunggah ulang -> akses terbuka untuk KTP baru -> diverifikasi -> bisa melapor lagi
     c.post("/api/me/ktp", headers=owner, files={"file": ("ktp-baru.jpg", KTP1, "image/jpeg")})
     assert _status(c, owner) == "menunggu"
     assert c.get(f"{base}/ktp", headers=officer).status_code == 200
     c.post(f"{base}/decision", headers=officer, json={"decision": "terverifikasi"})
     assert c.post("/api/reports", headers=owner, json=REPORT).status_code == 201
 
-    # riwayat & siapa saja yang membuka terlihat oleh pelapor
     info = c.get("/api/me/ktp", headers=owner).json()
     assert [h["action"] for h in info["history"]] == [
         "diajukan", "ditolak", "diajukan", "terverifikasi", "verifikasi_ulang", "diajukan", "terverifikasi"]
-    assert len(info["views"]) == 3  # hanya pembukaan yang berhasil and info["views"][0]["officer"] == "Vera Verifikator"
-    # pemilik tetap bisa mengunduh KTP-nya sendiri
+    assert len(info["views"]) == 3 and info["views"][0]["officer"] == "Vera Verifikator"
     assert c.get(f"/api/attachments/{info['id']}/download", headers=owner).content == KTP1
 
 
@@ -98,6 +89,6 @@ def test_only_officer_and_only_pelapor_targets(ctx):
     c, officer, owner, uid = ctx
     assert c.get("/api/officer/verifications", headers=owner).status_code == 403
     assert c.post(f"/api/officer/verifications/{uid}/flag", headers=owner,
-                  json={"reason": "mencoba menandai diri sendiri"}).status_code == 403
+                  json={"reason": "attempting to flag self"}).status_code == 403
     officer_id = c.get("/api/auth/me", headers=officer).json()["id"]
     assert c.get(f"/api/officer/verifications/{officer_id}", headers=officer).status_code == 404

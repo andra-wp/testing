@@ -13,10 +13,10 @@ load_dotenv(BASE_DIR / ".env", override=False)
 def _key(name: str) -> bytes:
     value = os.getenv(name, "").strip()
     if not value:
-        raise RuntimeError(f"{name} belum diset. Jalankan dulu: python -m scripts.init_env")
+        raise RuntimeError(f"{name} is not set. Run first: python -m scripts.init_env")
     key = base64.b64decode(value)
     if len(key) != 32:
-        raise RuntimeError(f"{name} harus 32 byte (base64).")
+        raise RuntimeError(f"{name} must be 32 bytes (base64).")
     return key
 
 
@@ -42,7 +42,7 @@ class Settings:
 def get_settings() -> Settings:
     jwt_secret = os.getenv("JWT_SECRET", "").strip()
     if len(jwt_secret) < 32:
-        raise RuntimeError("JWT_SECRET belum diset. Jalankan dulu: python -m scripts.init_env")
+        raise RuntimeError("JWT_SECRET is not set. Run first: python -m scripts.init_env")
     return Settings(
         master_key=_key("MASTER_KEY"),
         integrity_key=_key("INTEGRITY_KEY"),
