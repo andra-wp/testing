@@ -13,7 +13,6 @@ def get_current_user(authorization: Optional[str] = Header(None)) -> dict[str, A
             detail="Header otentikasi tidak ditemukan. Silakan login terlebih dahulu.",
         )
 
-    # Format header: "Bearer <token>" atau langsung "<token>"
     parts = authorization.split(" ")
     token = parts[1] if len(parts) == 2 and parts[0].lower() == "bearer" else parts[0]
 

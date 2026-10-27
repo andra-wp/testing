@@ -22,7 +22,9 @@ from .evidence import (
     save_evidence,
     get_all_evidences,
     get_evidence_by_id,
+    get_envelope_by_id,
     get_evidences_by_user,
+    delete_evidence,
     count_evidences,
     get_evidence_stats,
 )
@@ -62,7 +64,9 @@ __all__ = [
     "save_evidence",
     "get_all_evidences",
     "get_evidence_by_id",
+    "get_envelope_by_id",
     "get_evidences_by_user",
+    "delete_evidence",
     "count_evidences",
     "get_evidence_stats",
     # schemas
