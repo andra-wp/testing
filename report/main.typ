@@ -1,14 +1,14 @@
 // =====================================================================
 //  Assignment 1 — Report (max. 2 A4 pages)
-//  Scenario: confidential evidence storage for reporting sexual violence on campus
-//  Compile:  typst compile main.typ
-//  Benchmark numbers are read from benchmark_results.json
-//  (produced by backend/benchmark.py), so the tables always match the measurement.
+//  Scenario: confidential reporting of violence on campus
+//  Compile from the report/ folder:  typst compile --root .. main.typ
+//  (--root .. lets the report read the team's benchmark results in backend/,
+//   so every number below comes straight from that measurement)
 // =====================================================================
 
 // ---------- Metadata -------------------------------------------------
-#let title       = "CipherVault"
-#let subtitle    = "Confidential Evidence Storage for Reporting Sexual Violence on Campus"
+#let title       = "Lapor Aman"
+#let subtitle    = "Confidential Reporting of Violence on Campus"
 #let course      = "Information Security / IUP — Assignment 1"
 #let repo-url    = "https://github.com/andra-wp/testing"
 #let ai-url      = "https://chatgpt.com/share/6ae05665-e3d4-83ec-832e-7b93d76c83d1"
@@ -30,40 +30,49 @@
 } else { body }
 
 // "Decision — justification" line for the design section.
-#let decision(what, why) = block(spacing: 0.5em)[*#what.* #why]
+#let decision(what, why) = block(spacing: 0.45em)[*#what.* #why]
 
-// ---------- Benchmark data -------------------------------------------
-#let bench = json("benchmark_results.json")
-// Round to a readable precision: 2 decimals below 10, 1 below 100, else integer
+// ---------- Benchmark data (backend/benchmark/results/results.json) ---
+#let bench = json("/backend/benchmark/results/results.json")
 #let fmt(x) = if x < 10 { str(calc.round(x, digits: 2)) } else if x < 100 { str(calc.round(x, digits: 1)) } else { str(int(calc.round(x))) }
-#let row(ev, c) = bench.results.filter(r => r.evidence == ev and r.cipher == c).first()
-#let evidences = bench.results.map(r => r.evidence).dedup()
-#let ciphers = ("AES", "DES", "RC4")
+// nanoseconds → readable µs / ms / s
+#let t(ns) = if ns < 1e6 { fmt(ns / 1e3) + " µs" } else if ns < 1e9 { fmt(ns / 1e6) + " ms" } else { fmt(ns / 1e9) + " s" }
+#let sz(b) = if b < 1024 { str(b) + " B" } else if b < 1048576 { fmt(b / 1024) + " KB" } else { fmt(b / 1048576) + " MB" }
+#let pay(payload, cipher) = bench.payloads.filter(r => r.payload == payload and r.cipher == cipher).first()
+#let enc(payload, cipher) = pay(payload, cipher).enc.median_ns
+#let prim(name) = bench.primitives.filter(r => r.primitive == name).first().mbps
+#let SCHEMES = ("AES-256-GCM", "DES-CBC-HMAC", "RC4-HMAC")
+#let HM = "HMAC plaintext (sekali)"
+// English row labels for the results table (the benchmark stores Indonesian ones)
+#let LABEL = (nik: "NIK field", kronologi: "Chronology", ktp: "KTP scan", dokumen: "Office document", video: "Video evidence")
+// upload processing of a 200 MB video = all three copies + plaintext HMAC, scaled from the 64 MB run
+#let vid-sum = SCHEMES.map(c => enc("video", c)).sum() + enc("video", HM)
+#let up200 = vid-sum * 200 / 64
+#let des-share = enc("video", "DES-CBC-HMAC") / vid-sum
+#let ratio(c) = enc("video", c) / enc("video", "AES-256-GCM")
 
 // ---------- Page & typography ---------------------------------------
 #set document(title: title, author: members.map(m => m.name))
 #set page(
   paper: "a4",
-  margin: (x: 1.8cm, top: 1.6cm, bottom: 1.6cm),
+  margin: (x: 1.7cm, top: 1.4cm, bottom: 1.4cm),
   numbering: "1 / 1",
   number-align: center,
 )
-#set text(font: ("Libertinus Serif", "New Computer Modern"), size: 10pt, lang: "en")
-#set par(justify: true, leading: 0.55em, spacing: 0.7em)
+#set text(font: ("Libertinus Serif", "New Computer Modern"), size: 9.5pt, lang: "en")
+#set par(justify: true, leading: 0.5em, spacing: 0.6em)
 #set heading(numbering: "1.")
-#show heading.where(level: 1): it => block(above: 0.9em, below: 0.45em,
-  text(size: 11.5pt, weight: "bold", it))
-#show heading.where(level: 2): it => block(above: 0.7em, below: 0.35em,
-  text(size: 10pt, weight: "bold", style: "italic", it))
-#set list(spacing: 0.4em, indent: 0.6em)
-#set enum(spacing: 0.4em, indent: 0.6em)
-#set table(stroke: 0.5pt + luma(150), inset: 4pt)
+#show heading.where(level: 1): it => block(above: 0.75em, below: 0.4em,
+  text(size: 11pt, weight: "bold", it))
+#show heading.where(level: 2): it => block(above: 0.6em, below: 0.3em,
+  text(size: 9.5pt, weight: "bold", style: "italic", it))
+#set table(stroke: 0.5pt + luma(150), inset: 3.5pt)
 #show table.cell.where(y: 0): set text(weight: "bold")
-#show table: set text(size: 9pt)
-#show figure: set block(spacing: 0.6em)
-#show figure.caption: set text(size: 9pt)
+#show table: set text(size: 8.5pt)
+#show figure: set block(spacing: 0.5em)
+#show figure.caption: set text(size: 8.5pt)
 #show link: set text(fill: rgb("#1d4ed8"))
-#show raw: set text(size: 9pt)
+#show raw: set text(size: 8.5pt)
 
 // ---------- Title block ---------------------------------------------
 #align(center)[
@@ -71,65 +80,64 @@
   #v(-0.3em)
   #text(size: 10pt)[#subtitle] \
   #v(-0.2em)
-  #text(size: 9pt)[
+  #text(size: 8.5pt)[
     #members.map(m => [#m.name (#m.id)]).join([ · ]) \
     #course · Repository: #link(repo-url)[#repo-url]
   ]
 ]
-#v(0.2em)
+#v(0.1em)
 #line(length: 100%, stroke: 0.5pt)
 
 // =====================================================================
-= Scenario: Reporting Sexual Violence on Campus
+= Scenario: Reporting Violence on Campus
 
-Victims of sexual violence and harassment on campus often do not report it because they fear that their identity, and what happened to them, will spread beyond the people handling the case. CipherVault gives a student one place to hand evidence to the campus unit that handles such reports (the *admin*), while keeping that evidence unreadable to anyone without the reporter's passphrase — including whoever obtains the database or a copy of an evidence file.
-
-There are two roles. A *reporter* registers with a self-chosen username (no real name is required), encrypts evidence, keeps the returned encrypted envelope and can decrypt it again. The *admin* sees the list of submitted evidence and its metadata and can download any envelope, but can open one only with the passphrase that the reporter chose; the victim therefore decides if and when the content is disclosed. A report holds chat screenshots, an identity document (KTM/KTP, only if the reporter chooses to be identified), office documents and video, plus notes (@tab-class). Leaking any of these exposes the victim, the perpetrator and witnesses and can lead to retaliation and re-victimisation. E-mailing the files to a staff member leaves unencrypted copies in several mailboxes and forwards; here every file is encrypted before it is stored, in one place, behind role-based access.
+Students who experience or witness violence on campus — sexual violence and harassment, gender-based violence online (e.g. spreading intimate images), bullying, cyberbullying, physical or psychological violence — often stay silent because they fear that their identity and their story will spread beyond the people handling it. Lapor Aman gives them one channel to the campus task force (*Satgas*) that handles such cases. A *reporter* registers, verifies their identity once with a KTP scan, files a report (category, chronology, location or link, perpetrator) with documents and videos, and follows its status. An *officer* (accounts are created only by an administrator script) works through a queue, sees the reporter's identity masked, and may *preview* — never download — only the evidence the reporter shared. E-mailing evidence to a staff member would leave readable copies in several mailboxes with no record of who opened them; here everything personal is encrypted before it is stored, only the owner can download it, and every access is logged and visible to the reporter.
 
 == Which data is private
 
 #figure(
   table(
-    columns: (auto, 1.3fr, auto, 1.5fr),
+    columns: (auto, 1.25fr, auto, 1.45fr),
     align: (left, left, center, left),
     table.header[Data][What it contains here][Private?][Basis (GDPR / UU PDP)],
-    [Account & notes], [pseudonym; chronology naming people, places], [Yes], [GDPR Art. 4(1), 9(1) (sex life); UU PDP Pasal 4(3)],
-    [Chat screenshots], [names, numbers, messages of victim and others], [Yes], [GDPR Art. 4(1) (incl. third parties); UU PDP Pasal 4(3)],
-    [Identity doc (KTM/KTP)], [NIK, name, photo, address], [Yes], [UU PDP Pasal 4(3); photo not used for identification, so not biometric (GDPR Recital 51)],
-    [Office docs], [chronology, medical report], [Yes, specific], [health: GDPR Art. 9(1); UU PDP Pasal 4(2)(a)],
-    [Video], [faces, voices, intimate content], [Yes, specific], [GDPR Art. 4(1), 9(1) (sex life)],
+    [Identity], [full name, NIK, phone, e-mail], [Yes], [GDPR Art. 4(1); UU PDP Pasal 4(3)],
+    [KTP scan], [NIK, photo, address, date of birth], [Yes], [UU PDP Pasal 4(3); the photo is only compared by eye, not processed for biometric identification (GDPR Recital 51)],
+    [Report text, file names, messages], [chronology, place or link, perpetrator and witnesses], [Yes; specific for sexual violence], [GDPR Art. 9(1) (sex life); perpetrator and witnesses are data subjects too, Art. 4(1)],
+    [Office documents], [written statements, medical/visum reports], [Yes, specific], [health data: GDPR Art. 9(1); UU PDP Pasal 4(2)(a)],
+    [Screenshots, video], [messages, faces, voices; intimate images (KBGO)], [Yes; specific if intimate], [GDPR Art. 4(1), 9(1)],
   ),
-  caption: [Classification of stored data. Treated as *not* private: cipher parameters (algorithm, mode, salt, nonce, MAC), which are public by design (Kerckhoffs), and operational metadata (file size, timestamp). GDPR Art. 32(1)(a) and Art. 5(1)(f) name encryption and integrity as security measures for such data.],
+  caption: [Classification of stored data. Treated as *not* private and kept in plaintext: record IDs, status, category, timestamps and file sizes, which the queue and statistics need (but see §4 on the category). GDPR Art. 5(1)(f) and 32(1)(a) name confidentiality, integrity and encryption as required safeguards.],
 ) <tab-class>
 
 // =====================================================================
 = Design and Justification
 
 == Architecture
-A React + Vite frontend talks to a FastAPI backend backed by SQLite (`instances/ciphervault.db`). _Upload:_ the browser sends the file and passphrase; the server derives the key, encrypts, stores the envelope in `evidences.envelope_json` and returns it to the reporter. _Review:_ the admin lists evidence and downloads envelopes. _Download:_ envelope + passphrase are sent back; the server checks the MAC, decrypts and returns the file. Encryption runs on the server because browsers' WebCrypto offers AES but neither DES nor RC4; client-side encryption would need hand-written JavaScript for two ciphers, whereas the server uses one maintained library (PyCryptodome) and one key-derivation path for all three. The cost is that the server sees plaintext and passphrase during a request, so it must be trusted and served over HTTPS (§4).
+A React frontend talks to a FastAPI backend; SQLite holds metadata, wrapped keys and the ciphertext of short text fields, while files are streamed to disk in 1 MiB chunks (one directory per cipher), so a 200 MB video is never held in memory. Encryption runs on the server, not in the browser, because officers must preview shared evidence *through* the server's access checks and watermark, and browsers' WebCrypto offers AES but neither DES nor RC4. The cost is that the server sees plaintext during a request, so it must be trusted and served over HTTPS (§4).
 
 == Ciphers and modes of operation
-#decision[AES-256 — CTR][CTR turns the block cipher into a stream: no padding (no padding-oracle risk, ciphertext as long as the file), a corrupted bit affects only that bit, and blocks are independent, which suits large videos. Its one requirement, never reusing a nonce under a key, holds because every file gets a fresh key (fresh salt) and a random 8-byte nonce (64-bit counter). CTR is malleable, so we add HMAC-SHA256 (encrypt-then-MAC). We did not use GCM because DES has no GCM mode; one construction (CTR + HMAC) serves both block ciphers.]
-#decision[DES — CTR][Same reasons as AES. With an 8-byte block, the 4-byte nonce leaves a 32-bit counter: $2^32$ blocks × 8 B = 32 GiB per file, far above the 100 MB upload limit; per-file keys keep each key far from the 64-bit-block birthday bound. The 56-bit effective key remains brute-forceable (§4).]
-#decision[RC4][A stream cipher with no mode or nonce: keystream reuse is prevented only because each file's key is new (fresh salt → fresh PBKDF2 output). Its keystream biases remain (we do not discard initial bytes), and it is prohibited in TLS (RFC 7465).]
+The assignment asks that everything stored be protected with each of AES, DES and RC4, so every item is encrypted *three times*, once per scheme, each with its own random key; all reads use the AES copy. ECB is never used: equal plaintext blocks would give equal ciphertext blocks and reveal file structure.
+#decision[AES-256-GCM][An AEAD mode: confidentiality and a 128-bit tag in one pass, accelerated by AES-NI. Its weakness, nonce reuse, cannot occur: every item has a fresh key and a random 96-bit nonce.]
+#decision[DES-CBC + HMAC-SHA256][DES has no authenticated mode (its 64-bit block rules out GCM), so we use CBC with a random IV and PKCS\#7 padding, wrapped in Encrypt-then-MAC over IV, ciphertext and context. The MAC is checked first, which removes padding-oracle and bit-flipping attacks. Per-item keys keep every key far below the 64-bit-block (Sweet32) collision bound of ≈ #fmt(bench.sweet32.des_birthday_bound_GiB) GiB.]
+#decision[RC4-drop[3072] + HMAC-SHA256][RC4 has no IV, so keystream reuse is prevented only by a fresh 128-bit key per item. The first 3072 keystream bytes, which are measurably biased, are discarded (§3), and Encrypt-then-MAC removes RC4's malleability.]
 
 == Key handling
-Key = PBKDF2-HMAC-SHA256(passphrase, 16-byte random salt per file, 600 000 iterations, 64 B): the first 32 B (8 B for DES) are the cipher key, the last 32 B the HMAC key, so encryption and integrity never share a key. 600 000 iterations is the OWASP recommendation for PBKDF2-HMAC-SHA256; its measured cost is #fmt(bench.kdf_ms.median) ms per file (§3). Salt, nonce and MAC are stored in the envelope; the passphrase, derived keys and plaintext are never stored. A forgotten passphrase makes the evidence unrecoverable, even for the admin: we accept this rather than keep a master key that could be stolen or compelled.
+Per item and cipher, a random key (`os.urandom`) is *wrapped* with a `MASTER_KEY` using AES-256-GCM and stored next to the ciphertext (envelope encryption). We chose this over keys derived from the reporter's password because an officer must be able to preview evidence the reporter shared without knowing that password, and because deleting the wrapped keys erases an account irrecoverably (crypto-shredding, the right to erasure). Owner, object type, ID, field and cipher are bound to every ciphertext as associated data, so a ciphertext or key moved to another row or user fails verification. Two further keys are separate from the master key: `INTEGRITY_KEY` for an HMAC of the plaintext and `BLIND_INDEX_KEY` for looking up the (encrypted) e-mail at login. Account passwords are hashed with bcrypt (cost 12).
 
 == Storage
-Each upload is one `evidences` row: owner id, category, filename, algorithm, mode, notes, size, envelope and timestamp. The envelope is JSON with Base64 fields (≈ #fmt(row(evidences.first(), "AES").envelope_ratio) × the file size, measured). Filename, category and notes are kept in plaintext, both in columns (for the admin list) and inside the envelope; for this scenario this is the weakest point of the current implementation (§4). Files are read fully into memory, so uploads are capped at 100 MB.
+Encrypted: identity fields, KTP scan, report text, file names, messages and all evidence. Plaintext: only the metadata in @tab-class. Uploads are checked by magic bytes, not only by extension, so a disguised executable is rejected.
 
 == Authentication, access control and integrity
-Account passwords are hashed with PBKDF2-HMAC-SHA256 (600 000 iterations, 16-byte random salt) and compared with `hmac.compare_digest`. Login returns a random 256-bit token held in server memory and sent as a Bearer header; every crypto endpoint requires it and `/api/admin/*` additionally requires the `admin` role. Data comes back intact because the server recomputes HMAC-SHA256 over nonce ‖ ciphertext and compares it in constant time *before* decrypting: a wrong passphrase or a modified ciphertext is rejected instead of silently yielding garbage, which plain CTR would do.
+Login issues a short-lived JWT (HS256) kept in the browser's session storage. Downloads are allowed only to the owner; anyone else receives 404, so the file's existence is not revealed. Officers see masked identities and a watermarked, download-free preview of files the reporter shared — per file, revocable, and only while the report is open; for other files they must request access with a reason the reporter approves or denies. The KTP is visible to officers only while its verification is pending. On every read the server unwraps the key, verifies the GCM tag or HMAC, decrypts, and compares the plaintext HMAC with the one recorded at upload; only if all match is data released, so it comes back intact or not at all. The *Check 3 ciphers* button decrypts all copies and shows that each equals the original.
 
 // =====================================================================
 = Comparative Analysis of AES, DES and RC4
 
 == What we measure and why
-A reporter waits for each upload, an admin for each opening, and the university pays for storage. Per realistic evidence size we measure (1) cipher-only time, to compare the ciphers themselves; (2) end-to-end envelope encryption/decryption exactly as the API runs it (PBKDF2 + cipher + HMAC + Base64/JSON), which is what users wait for; (3) PBKDF2 alone; (4) envelope size. Network time is excluded: it is identical for all ciphers.
+A reporter waits for an upload, an owner for a download, and an attacker targets the weakest copy, so we measure: (1) time per data type of the scenario — a NIK field, a chronology, a KTP scan, an office document, a video — using exactly the application's schemes; (2) the pure ciphers versus HMAC, to separate the price of integrity; (3) fixed cost per item, which dominates small fields; (4) tampering, to test "comes back intact"; (5) measurable weaknesses: RC4 bias and the DES key and block size.
 
 == Methodology
-#bench.env.cpu, #bench.env.os, Python #bench.env.python, PyCryptodome #bench.env.pycryptodome. Script `backend/benchmark.py` calls the same functions as the API on random data (cipher speed does not depend on content). Each measurement has one warm-up run, then #bench.env.reps repetitions (cipher-only) or #bench.env.e2e_reps (end-to-end, which includes PBKDF2); we report the median, which is robust to background load.
+Script `backend/benchmark/run_benchmark.py` on #bench.env.cpu with #bench.env.cores cores and AES-NI, Python #bench.env.python, PyCryptodome #bench.env.pycryptodome. Random data, chunks prepared outside the timed region, warm-up, garbage collection disabled, small payloads repeated so that each sample lasts ≥ 20 ms, optional pinning to one core; we report the median (with quartiles and coefficient of variation in the full results).
 
 == Results
 
@@ -137,34 +145,25 @@ A reporter waits for each upload, an admin for each opening, and the university 
   table(
     columns: (auto, auto, 1fr, 1fr, 1fr),
     align: (left, right, right, right, right),
-    table.header[Evidence type][Size][AES-256-CTR][DES-CTR][RC4],
-    ..evidences.map(ev => {
-      let r0 = row(ev, "AES")
-      (
-        [#ev], [#fmt(r0.size_mb) MB],
-        ..ciphers.map(c => {
-          let r = row(ev, c)
-          [#fmt(r.cipher_enc_ms.median) / #fmt(r.e2e_enc_ms.median)]
-        }),
-      )
+    table.header[Data][Size][AES-256-GCM][DES-CBC-HMAC][RC4-HMAC],
+    ..("nik", "kronologi", "ktp", "dokumen", "video").map(k => {
+      let r0 = pay(k, "AES-256-GCM")
+      ([#LABEL.at(k)], [#sz(r0.size)], ..SCHEMES.map(c => [#t(enc(k, c))]))
     }).flatten(),
   ),
-  caption: [Median encryption time in ms: cipher only / end-to-end upload processing (incl. PBKDF2 #fmt(bench.kdf_ms.median) ms, HMAC, Base64/JSON). Throughput (cipher only): AES #fmt(row(evidences.last(), "AES").throughput_mb_s), DES #fmt(row(evidences.last(), "DES").throughput_mb_s), RC4 #fmt(row(evidences.last(), "RC4").throughput_mb_s) MB/s. Decryption times are similar.],
+  caption: [Median encryption time per scheme, incl. key wrap and tag/HMAC. Pure-cipher throughput (16 MB): AES-GCM #fmt(prim("AES-256-GCM (dgn tag)")), DES-CBC #fmt(prim("DES-CBC")), RC4 #fmt(prim("RC4-drop3072")), HMAC-SHA256 #fmt(prim("HMAC-SHA256")) MB/s.],
 ) <tab-results>
 
 == Interpretation
-#let small = evidences.first()
-#let big = evidences.last()
-#let ratio(c) = calc.round(row(big, c).cipher_enc_ms.median / row(big, "AES").cipher_enc_ms.median, digits: 1)
-For the evidence a victim uploads most often (screenshots, scans, documents up to 2 MB) the cipher does not matter to the user: PBKDF2 alone takes #fmt(bench.kdf_ms.median) ms, i.e. #calc.round(100 * bench.kdf_ms.median / row(small, "AES").e2e_enc_ms.median) % of the #fmt(row(small, "AES").e2e_enc_ms.median) ms AES upload of a screenshot, and even DES adds at most #fmt(row(evidences.at(2), "DES").cipher_enc_ms.median) ms. This cost is deliberate: it is what makes guessing a reporter's passphrase from a stolen envelope expensive. The cipher matters only for video. At the 100 MB limit DES is #ratio("DES") × and RC4 #ratio("RC4") × slower than AES, so an upload takes #fmt(row(big, "DES").e2e_enc_ms.median / 1000) s with DES against #fmt(row(big, "AES").e2e_enc_ms.median / 1000) s with AES. That RC4 is slower than AES on this machine is most likely due to the CPU's AES-NI instructions, which PyCryptodome can use; we did not test without them. For AES on large files, Base64/JSON and HMAC cost more than the encryption itself (#fmt(row(big, "AES").e2e_enc_ms.median - bench.kdf_ms.median - row(big, "AES").cipher_enc_ms.median) ms vs. #fmt(row(big, "AES").cipher_enc_ms.median) ms), and they also set the storage cost: every envelope is #fmt(row(big, "AES").envelope_ratio) × the file for all three ciphers, because CTR and RC4 add no padding. We therefore recommend AES-256-CTR with HMAC: it is the fastest here and the only one of the three still considered secure; DES and RC4 are kept because the assignment requires them.
+*Small fields:* every scheme needs about 0.1–0.2 ms, and for the NIK field AES is even the slowest, because the fixed cost — wrapping the key (#t(bench.setup_ns.at("Key wrap AES-GCM (dipakai semua skema)"))) and setting up GCM for a new key — outweighs the cipher; no user notices this. *Files:* for a 64 MB video DES is #fmt(ratio("DES-CBC-HMAC")) × and RC4 #fmt(ratio("RC4-HMAC")) × slower than AES. Because all three copies are written, processing a 200 MB video takes ≈ #fmt(up200 / 1e9) s, #calc.round(100 * des-share) % of it caused by DES; with AES alone it would be under one second. RC4's classic speed advantage disappears once integrity is required: pure RC4 reaches #fmt(prim("RC4-drop3072")) MB/s, with HMAC ≈ #fmt(1 / (1 / prim("RC4-drop3072") + 1 / prim("HMAC-SHA256"))) MB/s, while AES-GCM delivers #fmt(prim("AES-256-GCM (dgn tag)")) MB/s with its tag included. *Integrity:* flipping one random ciphertext bit #bench.tamper.at("AES-256-GCM").trials times was detected every time by all three schemes, whereas without a MAC CTR and RC4 detected #bench.tamper.at("RC4 (tanpa MAC)").detected and CBC only #bench.tamper.at("DES-CBC (tanpa MAC)").detected; an attacker could silently alter a date or name in a chronology, which would destroy its value as evidence. *Weaknesses:* without the drop, RC4's second keystream byte is 0 with probability #fmt(100 * bench.rc4_bias.at("drop=0").p) % instead of 0.39 % (z = #fmt(bench.rc4_bias.at("drop=0").z_vs_uniform)); after dropping 3072 bytes the bias is no longer measurable (z = #fmt(bench.rc4_bias.at("drop=3072").z_vs_uniform)). DES's 56-bit key was broken in about 56 hours by dedicated hardware in 1998. Since a thief only needs the weakest copy, *confidentiality is only as strong as DES*. We therefore recommend AES-256-GCM as the only stored copy in a real deployment; DES and RC4 are kept here because the assignment requires them.
 
 // =====================================================================
 = Limitations and Conclusion
-The main gap for this scenario is that the incident notes, filename and category are stored in plaintext and are not covered by the MAC; they should move inside the encrypted, authenticated part. Also: decryption checks login but not ownership, so access rests on the passphrase alone, and reporters keep their envelope (they cannot fetch it from the server); the `admin` role goes to whoever first registers "admin"; sessions live in server memory and the token in localStorage (readable by XSS); the server sees plaintext, so HTTPS and a trusted host are required; DES's 56-bit key is brute-forceable and RC4 is biased. Out of scope: a compromised server or reporter device. In production we would use AES only (or AES-GCM), encrypt all metadata, stream large files and store binary ciphertext. CipherVault shows that evidence files of sexual violence can be stored so that a leaked database or envelope does not reveal their content without the reporter's passphrase, and that with AES this costs a victim about #fmt(row(small, "AES").e2e_enc_ms.median / 1000) s for a typical document and under one second for a 100 MB video.
+Storing a DES copy weakens confidentiality to 56 bits and triples disk use. `MASTER_KEY` lives in a `.env` file; production needs a KMS or HSM. There is no HTTPS, login rate limiting or virus scanning, and registration reveals whether an e-mail is already used. For this scenario two design tensions remain: mandatory KTP verification protects accused persons against false reports but may deter victims who fear exposure, and a reporter's permission applies to all officers rather than only the assigned handler; the plaintext category linked to a reporter also reveals the type of violence. Out of scope: a compromised server or reporter device. In conclusion, Lapor Aman lets victims hand over evidence of violence so that it is encrypted at rest, released only to its owner, shown to officers only with consent and an audit trail, and verified to be intact on every read; AES-256-GCM provides this at negligible cost, while DES and RC4 add delay and, in DES's case, a weaker copy.
 
 // ---------- Footer: AI usage ----------------------------------------
-#v(0.3em)
+#v(0.2em)
 #line(length: 100%, stroke: 0.4pt)
-#text(size: 8.5pt)[
-  *AI usage.* ChatGPT: #link(ai-url)[#ai-url] — #todo[what the group used ChatGPT for]. Claude Code (Anthropic) was used to redesign the frontend, merge the CTR/HMAC changes into it, write `backend/benchmark.py` and draft this report; log: #todo[shared link to the Claude log]. #todo[How the group checked the AI output (e.g. re-ran the benchmark, compared claims with the code and the cited regulations).]
+#text(size: 8pt)[
+  *AI usage.* ChatGPT: #link(ai-url)[#ai-url] — #todo[what the group used ChatGPT for]. Claude Code (Anthropic) was used to apply the Huawei-style design and the violence scenario to the frontend, fix two frontend bugs, and draft this report from the code and the team's benchmark results; log: #todo[shared link to the Claude log]. #todo[How the group checked the AI output, e.g. compared each claim with the code, re-ran tests and benchmark, checked the cited regulations.]
 ]
