@@ -11,7 +11,7 @@ def create_case(
     created_by: Optional[int] = None,
 ) -> int:
     """Membuat rekaman kasus insiden siber baru."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -24,7 +24,7 @@ def create_case(
 
 def get_case_by_id(case_id: int) -> Optional[dict[str, Any]]:
     """Mencari detail kasus insiden berdasarkan ID."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -40,7 +40,7 @@ def get_case_by_id(case_id: int) -> Optional[dict[str, Any]]:
 
 def get_all_cases() -> list[dict[str, Any]]:
     """Mengambil semua daftar kasus insiden siber."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -56,7 +56,7 @@ def get_all_cases() -> list[dict[str, Any]]:
 
 def update_case_status(case_id: int, status: str) -> bool:
     """Memperbarui status investigasi kasus (OPEN, INVESTIGATING, CLOSED)."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -68,7 +68,7 @@ def update_case_status(case_id: int, status: str) -> bool:
 
 def get_evidences_by_case(case_id: int) -> list[dict[str, Any]]:
     """Mengambil semua barang bukti yang terkait dengan kasus tertentu."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -84,7 +84,7 @@ def get_evidences_by_case(case_id: int) -> list[dict[str, Any]]:
 
 def assign_evidence_to_case(evidence_id: int, case_id: int) -> bool:
     """Menautkan barang bukti ke dalam suatu kasus insiden."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(

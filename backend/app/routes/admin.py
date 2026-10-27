@@ -1,9 +1,9 @@
 import json
 from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, Response, status
+from app.database import get_db
 from app.models import (
     get_all_evidences,
-    get_db,
     get_evidence_by_id,
     create_case,
     get_all_cases,
@@ -19,7 +19,6 @@ router = APIRouter(prefix="/api/admin", tags=["Administrator & Investigation"])
 
 
 def require_admin(current_user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
-    """Dependency RBAC: Memastikan bahwa pengguna memiliki peran 'admin'."""
     if current_user.get("role") != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -85,11 +84,6 @@ def get_stats(admin: dict[str, Any] = Depends(require_admin)):
         "total_users": total_users,
         "categories": categories,
     }
-
-
-# ==========================================
-# CASE MANAGEMENT ENDPOINTS (OPTION A)
-# ==========================================
 
 @router.get("/cases", summary="Daftar Kasus Insiden Siber (Khusus Admin)")
 def list_cases(admin: dict[str, Any] = Depends(require_admin)):

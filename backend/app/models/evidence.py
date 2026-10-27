@@ -16,7 +16,7 @@ def save_evidence(
     case_id: Optional[int] = None,
 ) -> int:
     """Menyimpan catatan laporan bukti terenkripsi ke database."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -30,7 +30,7 @@ def save_evidence(
 
 def get_all_evidences() -> list[dict[str, Any]]:
     """Mengambil semua daftar bukti yang dilaporkan (khusus admin/investigator)."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -47,7 +47,7 @@ def get_all_evidences() -> list[dict[str, Any]]:
 
 def get_evidence_by_id(evidence_id: int) -> Optional[dict[str, Any]]:
     """Mencari detail satu bukti berdasarkan ID."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -64,7 +64,7 @@ def get_evidence_by_id(evidence_id: int) -> Optional[dict[str, Any]]:
 
 def get_evidences_by_user(user_id: int) -> list[dict[str, Any]]:
     """Mengambil riwayat bukti yang diunggah oleh user tertentu."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         cursor = conn.execute(
@@ -80,7 +80,7 @@ def get_evidences_by_user(user_id: int) -> list[dict[str, Any]]:
 
 def count_evidences() -> int:
     """Menghitung total rekaman bukti tersimpan."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         row = conn.execute("SELECT COUNT(*) FROM evidences").fetchone()
@@ -89,7 +89,7 @@ def count_evidences() -> int:
 
 def get_evidence_stats() -> dict[str, Any]:
     """Menghitung total laporan dan breakdown per kategori."""
-    from . import get_db
+    from app.database import get_db
 
     with get_db() as conn:
         total_reports = conn.execute("SELECT COUNT(*) FROM evidences").fetchone()[0]
