@@ -49,8 +49,8 @@ export default function SecureViewer({ source, officerName, onClose }) {
   const block = (e) => e.preventDefault()
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-slate-900/80 p-3 sm:p-6" onClick={onClose}>
-      <div className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-white" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex flex-col bg-black/70 p-3 sm:p-6" onClick={onClose}>
+      <div className="mx-auto flex h-full w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-surface" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3 border-b border-slate-200 px-4 py-3">
           <div className="min-w-0 flex-1">
             <div className="truncate font-medium">{source.title}</div>

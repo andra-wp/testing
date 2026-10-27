@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Mode gelap berbasis class .dark di <html> (dipasang oleh ThemeContext / skrip di index.html) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --color-brand-50: #f0fdfa;
@@ -7,14 +10,69 @@
   --color-brand-600: #0d9488;
   --color-brand-700: #0f766e;
   --color-brand-800: #115e59;
+  /* warna solid untuk latar tombol/pita berteks putih: TIDAK dibalik di mode gelap */
+  --color-brand-solid: #0f766e;
+  --color-brand-solid-hover: #115e59;
+  /* permukaan kartu, input, modal */
+  --color-surface: #ffffff;
+}
+
+/*
+ * Mode gelap: alih-alih menambah dark: di ratusan class, palet yang dipakai aplikasi dipetakan ulang.
+ * Utilitas Tailwind v4 membaca variabel CSS, jadi bg-slate-50 / text-slate-800 / bg-emerald-50 dll.
+ * otomatis berubah. Skala netral dibalik (terang <-> gelap), warna aksen dibuat lebih terang untuk teks
+ * dan lebih gelap untuk latar.
+ */
+.dark {
+  color-scheme: dark;
+  --color-surface: #131c2e;
+
+  --color-slate-50: #0b1220;
+  --color-slate-100: #1c2638;
+  --color-slate-200: #263349;
+  --color-slate-300: #34435c;
+  --color-slate-400: #64748b;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #aab6c8;
+  --color-slate-700: #cbd5e1;
+  --color-slate-800: #e2e8f0;
+  --color-slate-900: #f1f5f9;
+
+  --color-brand-50: #0d2a29;
+  --color-brand-100: #134e48;
+  --color-brand-600: #14b8a6;
+  --color-brand-700: #2dd4bf;
+  --color-brand-800: #5eead4;
+
+  --color-emerald-50: #062a20;
+  --color-emerald-200: #065f46;
+  --color-emerald-600: #10b981;
+  --color-emerald-700: #34d399;
+  --color-emerald-800: #6ee7b7;
+
+  --color-red-50: #330f12;
+  --color-red-200: #7f1d1d;
+  --color-red-700: #f87171;
+  --color-red-800: #fca5a5;
+
+  --color-amber-50: #2b1d06;
+  --color-amber-200: #78350f;
+  --color-amber-700: #fbbf24;
+  --color-amber-800: #fcd34d;
+  --color-amber-900: #fde68a;
+
+  --color-sky-50: #08233a;
+  --color-sky-200: #075985;
+  --color-sky-700: #7dd3fc;
+  --color-sky-800: #bae6fd;
 }
 
 /* Kelas komponen kecil yang dipakai berulang (Tailwind v4: @utility bisa di-@apply) */
 @utility card {
-  @apply rounded-xl border border-slate-200 bg-white shadow-sm;
+  @apply rounded-xl border border-slate-200 bg-surface shadow-sm;
 }
 @utility input {
-  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none;
+  @apply w-full rounded-lg border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none;
 }
 @utility label {
   @apply mb-1 block text-sm font-medium text-slate-700;
@@ -23,14 +81,24 @@
   @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
 }
 @utility btn-primary {
-  @apply btn bg-brand-700 text-white hover:bg-brand-800;
+  @apply btn bg-brand-solid text-white hover:bg-brand-solid-hover;
 }
 @utility btn-secondary {
-  @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
+  @apply btn border border-slate-300 bg-surface text-slate-700 hover:bg-slate-50;
 }
 @utility btn-danger {
   @apply btn bg-red-600 text-white hover:bg-red-700;
 }
 @utility btn-sm {
   @apply px-3 py-1.5 text-xs;
+}
+
+.dark .btn-danger:hover {
+  background-color: #b91c1c;
+}
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-800;
+  }
 }

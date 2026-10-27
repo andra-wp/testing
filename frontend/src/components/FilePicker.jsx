@@ -51,7 +51,7 @@ export default function FilePicker({ kind, files, onChange, multiple = true, onE
         />
       </div>
       {files.length > 0 && (
-        <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-white text-sm">
+        <ul className="mt-2 divide-y divide-slate-100 rounded-lg border border-slate-200 bg-surface text-sm">
           {files.map((f, i) => (
             <li key={i} className="px-3 py-2">
               <div className="flex items-center justify-between gap-2">

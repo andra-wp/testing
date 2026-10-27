@@ -8,7 +8,7 @@ export default function EventTimeline({ events }) {
       {events.map((e) => (
         <li key={e.id} className="relative">
           <span
-            className={`absolute top-1.5 -left-[25px] h-2.5 w-2.5 rounded-full ring-4 ring-white ${
+            className={`absolute top-1.5 -left-[25px] h-2.5 w-2.5 rounded-full ring-4 ring-surface ${
               e.type === 'status' ? 'bg-brand-600' : 'bg-slate-400'
             }`}
           />

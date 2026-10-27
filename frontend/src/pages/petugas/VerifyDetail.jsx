@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { api } from '../../api/client'
 import KycHistory from '../../components/KycHistory'
 import SecureViewer from '../../components/SecureViewer'
-import { Alert, KycBadge, LockIcon, PageHeader, Spinner } from '../../components/ui'
+import { Alert, KycBadge, LengthHint, LockIcon, PageHeader, Spinner } from '../../components/ui'
 import { useAuth } from '../../context/AuthContext'
 import { formatBytes, formatDate } from '../../lib/format'
 
@@ -77,6 +77,8 @@ export default function VerifyDetail() {
                 ))}
               </fieldset>
               <textarea className="input min-h-16" placeholder="Catatan (wajib bila ditolak, dibaca pelapor)" maxLength={1000} value={note} onChange={(e) => setNote(e.target.value)} />
+              <LengthHint value={note} min={5} max={1000} />
+              <p className="-mt-2 text-xs text-slate-500">Minimal 5 karakter hanya wajib bila menolak.</p>
               <div className="flex flex-wrap gap-2">
                 <button
                   className="btn-primary"
@@ -123,6 +125,7 @@ export default function VerifyDetail() {
                 value={flagReason}
                 onChange={(e) => setFlagReason(e.target.value)}
               />
+              <LengthHint value={flagReason} min={10} max={1000} />
               <button
                 className="btn-secondary"
                 disabled={flagReason.trim().length < 10}

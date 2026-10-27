@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { api, uploadFile } from '../../api/client'
 import FilePicker from '../../components/FilePicker'
 import { ShareToggle } from '../../components/access'
-import { Alert, Field, KycBadge, PageHeader, ProgressBar, Spinner } from '../../components/ui'
+import { Alert, Field, KycBadge, LengthHint, PageHeader, ProgressBar, Spinner } from '../../components/ui'
 import { CATEGORIES, categoryLabel } from '../../lib/constants'
 
 const STEPS = ['Jenis insiden', 'Kronologi', 'Bukti', 'Kirim']
@@ -117,7 +117,7 @@ export default function NewReport() {
           <li
             key={s}
             className={`rounded-full px-3 py-1 font-medium ${
-              i === step ? 'bg-brand-700 text-white' : i < step ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-500'
+              i === step ? 'bg-brand-solid text-white' : i < step ? 'bg-brand-100 text-brand-800' : 'bg-slate-100 text-slate-500'
             }`}
           >
             {i + 1}. {s}
@@ -153,18 +153,22 @@ export default function NewReport() {
         {step === 1 && (
           <>
             <Alert kind="warn">Jangan menulis kata sandi, PIN, atau kode OTP Anda di formulir ini.</Alert>
-            <Field label="Judul singkat" hint="Contoh: SMS hadiah undian berisi tautan login bank">
-              <input className="input" maxLength={120} value={form.title} onChange={set('title')} />
+            <Field label="Judul singkat">
+              <input className="input" maxLength={120} placeholder="Contoh: SMS hadiah undian berisi tautan login bank" value={form.title} onChange={set('title')} />
+              <LengthHint value={form.title} min={5} max={120} />
             </Field>
-            <Field label="Kronologi" hint={`Apa yang terjadi, kapan, dan apa yang sudah Anda lakukan. ${form.chronology.length}/5000`}>
-              <textarea className="input min-h-40" maxLength={5000} value={form.chronology} onChange={set('chronology')} />
+            <Field label="Kronologi">
+              <textarea className="input min-h-40" maxLength={5000} placeholder="Apa yang terjadi, kapan, dan apa yang sudah Anda lakukan." value={form.chronology} onChange={set('chronology')} />
+              <LengthHint value={form.chronology} min={20} max={5000} />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="URL / alamat email / nomor pengirim (opsional)">
                 <input className="input" maxLength={2048} placeholder="http://contoh-palsu.xyz" value={form.incident_url} onChange={set('incident_url')} />
+                <LengthHint value={form.incident_url} max={2048} />
               </Field>
               <Field label="Rekening / akun pelaku (opsional)">
                 <input className="input" maxLength={200} placeholder="Bank ABC 1234567890" value={form.scammer_account} onChange={set('scammer_account')} />
+                <LengthHint value={form.scammer_account} max={200} />
               </Field>
             </div>
           </>

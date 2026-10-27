@@ -91,8 +91,8 @@ lapor-siber/
     ├── vite.config.js           # proxy /api → localhost:8000
     └── src/
         ├── api/client.js        # fetch + token, unggah dengan progres, unduh blob
-        ├── context/AuthContext.jsx
-        ├── components/          # Layout, FilePicker, SecureViewer, access.jsx (izin), dll.
+        ├── context/            # AuthContext, ThemeContext (Terang/Gelap/Ikuti sistem)
+        ├── components/          # Layout, FilePicker, SecureViewer, ThemeToggle, access.jsx (izin), ui.jsx (LengthHint), dll.
         └── pages/
             ├── Login.jsx, Register.jsx
             ├── pelapor/         # Dashboard, NewReport (wizard), ReportDetail, Verification, Profile
@@ -253,6 +253,15 @@ Halaman **Statistik** petugas juga menampilkan throughput dari unggahan sungguha
 disimpan untuk memenuhi tugas dan sebagai pembanding. Konsekuensinya perlu dicatat: tiga salinan berarti
 disk 3×, waktu proses unggahan menjadi jumlah ketiganya (didominasi DES), dan kerahasiaan data hanya sekuat
 salinan terlemah (DES 56 bit). Di sistem nyata hanya AES yang seharusnya disimpan.
+
+## Tampilan
+
+- **Mode gelap:** tombol di kanan atas (Terang / Gelap / Ikuti sistem), tersimpan di browser dan dipasang
+  sebelum halaman dirender agar tidak berkedip. Implementasinya memetakan ulang variabel warna Tailwind v4
+  di `src/index.css` (class `.dark` pada `<html>`), sehingga komponen tidak perlu ditulis dua kali.
+- **Info panjang input:** setiap isian yang punya batas menampilkan minimal/maksimal dan jumlah karakter
+  secara langsung (komponen `LengthHint`). Batasnya sama dengan validasi backend, misalnya judul 5–120,
+  kronologi 20–5000, kata sandi 10–64, NIK tepat 16 digit, dan alasan permintaan akses minimal 10.
 
 ## Batasan (proyek lokal)
 

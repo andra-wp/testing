@@ -6,7 +6,7 @@ import EventTimeline from '../../components/EventTimeline'
 import FilePicker from '../../components/FilePicker'
 import VerifyResult from '../../components/VerifyResult'
 import { OwnerAccessPanel, ShareToggle } from '../../components/access'
-import { Alert, LockIcon, PageHeader, ProgressBar, Spinner, StatusBadge } from '../../components/ui'
+import { Alert, LengthHint, LockIcon, PageHeader, ProgressBar, Spinner, StatusBadge } from '../../components/ui'
 import { STATUS, STATUS_FLOW } from '../../lib/constants'
 import { formatBytes, formatDate, formatMs } from '../../lib/format'
 
@@ -187,6 +187,7 @@ export default function ReportDetail() {
           {!closed && (
             <form onSubmit={sendNote} className="space-y-2 border-t border-slate-100 pt-4">
               <textarea className="input min-h-20" placeholder="Balas atau tambahkan informasi untuk petugas…" maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
+              <LengthHint value={note} min={1} max={2000} />
               <button className="btn-primary btn-sm" disabled={!note.trim()}>Kirim pesan</button>
             </form>
           )}

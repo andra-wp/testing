@@ -85,3 +85,27 @@ export function KycBadge({ status }) {
     </span>
   )
 }
+
+/**
+ * Info panjang input, mis. "min. 5 · maks. 120 ... 12/120". Bila belum memenuhi minimum,
+ * tampil "kurang N lagi" (amber); bila sudah, hijau dengan tanda centang. `unit` bisa 'digit'.
+ */
+export function LengthHint({ value = '', min = 0, max, unit = 'karakter', exact = false }) {
+  const len = value.trim().length
+  const short = min > 0 && len < min
+  const rule = exact ? `harus ${min} ${unit}` : [min > 0 && `min. ${min}`, max && `maks. ${max}`].filter(Boolean).join(' · ')
+  const cls = len === 0 ? 'text-slate-500' : short ? 'text-amber-700' : 'text-emerald-700'
+  return (
+    <p className={`mt-1 flex justify-between gap-3 text-xs ${cls}`} aria-live="polite">
+      <span>
+        {rule}
+        {len > 0 && short ? ` · kurang ${min - len} lagi` : ''}
+        {len > 0 && !short && min > 0 ? ' · ✓' : ''}
+      </span>
+      <span className="shrink-0 tabular-nums">
+        {len}
+        {max ? `/${max}` : ''}
+      </span>
+    </p>
+  )
+}

@@ -13,7 +13,7 @@ export default function KycHistory({ history }) {
     <ol className="relative space-y-3 border-l border-slate-200 pl-5">
       {[...history].reverse().map((h, i) => (
         <li key={i} className="relative">
-          <span className={`absolute top-1.5 -left-[25px] h-2.5 w-2.5 rounded-full ring-4 ring-white ${DOT[h.action]}`} />
+          <span className={`absolute top-1.5 -left-[25px] h-2.5 w-2.5 rounded-full ring-4 ring-surface ${DOT[h.action]}`} />
           <div className="text-xs text-slate-500">
             {formatDate(h.created_at)} · {h.actor}
           </div>

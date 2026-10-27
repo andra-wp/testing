@@ -5,7 +5,7 @@ import EventTimeline from '../../components/EventTimeline'
 import SecureViewer from '../../components/SecureViewer'
 import { AccessBadge } from '../../components/access'
 import { useAuth } from '../../context/AuthContext'
-import { Alert, KycBadge, LockIcon, PageHeader, Spinner, StatusBadge } from '../../components/ui'
+import { Alert, KycBadge, LengthHint, LockIcon, PageHeader, Spinner, StatusBadge } from '../../components/ui'
 import { STATUS } from '../../lib/constants'
 import { formatBytes, formatDate } from '../../lib/format'
 
@@ -144,6 +144,7 @@ export default function CaseDetail() {
                             value={reason}
                             onChange={(e) => setReason(e.target.value)}
                           />
+                          <LengthHint value={reason} min={10} max={500} />
                           <div className="flex gap-2">
                             <button className="btn-primary btn-sm" disabled={reason.trim().length < 10}>Kirim permintaan</button>
                             <button type="button" className="btn-secondary btn-sm" onClick={() => setRequesting(null)}>Batal</button>
@@ -183,6 +184,7 @@ export default function CaseDetail() {
                 {c.allowed_transitions.map((s) => <option key={s} value={s}>{STATUS[s].label}</option>)}
               </select>
               <textarea className="input min-h-16" placeholder="Catatan untuk pelapor (opsional)" maxLength={2000} value={statusNote} onChange={(e) => setStatusNote(e.target.value)} />
+              <LengthHint value={statusNote} max={2000} />
               <button
                 className="btn-primary btn-sm w-full"
                 onClick={() =>
@@ -211,6 +213,7 @@ export default function CaseDetail() {
               }}
             >
               <textarea className="input min-h-16" placeholder="Tanya pelapor / catatan tindak lanjut…" maxLength={2000} value={note} onChange={(e) => setNote(e.target.value)} />
+              <LengthHint value={note} min={1} max={2000} />
               <button className="btn-secondary btn-sm" disabled={!note.trim()}>Kirim pesan</button>
             </form>
           </section>
