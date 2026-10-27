@@ -92,3 +92,4 @@ def assign_evidence_to_case(evidence_id: int, case_id: int) -> bool:
             (case_id, evidence_id),
         )
         return cursor.rowcount > 0
+

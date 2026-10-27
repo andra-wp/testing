@@ -18,6 +18,7 @@ export interface CryptoEnvelope {
   ciphertext: string;
   iv?: string;
   nonce?: string;
+  mac?: string;
   notes?: string;
   category?: string;
   [key: string]: unknown;

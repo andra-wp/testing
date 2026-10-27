@@ -358,6 +358,14 @@ export const EvidenceEncryptTab: React.FC = () => {
                   <span className="text-zinc-400 truncate max-w-[170px]">{envelopeResult.envelope.iv}</span>
                 </div>
               )}
+              {envelopeResult.envelope.mac && (
+                <div className="p-2 flex justify-between items-center text-[11px]">
+                  <span className="text-zinc-500">Integritas (MAC):</span>
+                  <span className="text-emerald-400 font-mono text-[10px] truncate max-w-[160px]" title={envelopeResult.envelope.mac}>
+                    {envelopeResult.envelope.mac.slice(0, 16)}...
+                  </span>
+                </div>
+              )}
               <div className="p-2 flex justify-between items-center text-[11px]">
                 <span className="text-zinc-500">Ciphertext:</span>
                 <span className="text-zinc-400">{envelopeResult.envelope.ciphertext.length} char</span>

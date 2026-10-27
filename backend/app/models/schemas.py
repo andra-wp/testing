@@ -82,3 +82,25 @@ class CaseResponse(BaseModel):
     creator: Optional[str] = None
     evidence_count: Optional[int] = 0
     created_at: str
+
+
+# ==========================================
+# 3. CASE SCHEMAS (INCIDENT CASES)
+# ==========================================
+
+class CaseCreateRequest(BaseModel):
+    title: str = Field(..., min_length=3, max_length=120, description="Judul kasus insiden siber")
+    description: Optional[str] = Field("", description="Deskripsi kronologi kasus")
+    status: Optional[str] = Field("OPEN", description="Status kasus: OPEN, INVESTIGATING, CLOSED")
+
+
+class CaseResponse(BaseModel):
+    id: int
+    title: str
+    description: Optional[str] = ""
+    status: str
+    created_by: Optional[int] = None
+    creator: Optional[str] = None
+    evidence_count: Optional[int] = 0
+    created_at: str
+

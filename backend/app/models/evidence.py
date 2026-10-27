@@ -102,3 +102,4 @@ def get_evidence_stats() -> dict[str, Any]:
         "total_reports": total_reports,
         "categories": categories,
     }
+

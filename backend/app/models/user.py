@@ -65,3 +65,4 @@ def count_users() -> int:
     with get_db() as conn:
         row = conn.execute("SELECT COUNT(*) FROM users").fetchone()
         return row[0] if row else 0
+

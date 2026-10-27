@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import base64
+import hashlib
+import hmac
 import json
 import secrets
 from typing import Any
@@ -52,6 +54,9 @@ def encryptbytes(
         raise ValueError(f"Algorithm must be one of {', '.join(sorted(ALGORITHMS))}")
 
     salt = secrets.token_bytes(SALT_SIZE)
+    master_key = derive(password, salt, 64)
+    mac_key = master_key[32:64]
+
     fields: dict[str, Any] = {
         "algorithm": algorithm,
         "mode": "CTR" if algorithm in {"AES", "DES"} else "STREAM",
@@ -61,20 +66,27 @@ def encryptbytes(
         "salt": b64(salt),
     }
 
+    nonce = b""
     if algorithm == "AES":
-        key = derive(password, salt, 32)
-        nonce, ciphertext = encrypt_aes(key, data)
+        enc_key = master_key[:32]
+        nonce, ciphertext = encrypt_aes(enc_key, data)
         fields.update(nonce=b64(nonce), iv=b64(nonce), ciphertext=b64(ciphertext))
 
     elif algorithm == "DES":
-        key = derive(password, salt, 8)
-        nonce, ciphertext = encrypt_des(key, data)
+        enc_key = master_key[:8]
+        nonce, ciphertext = encrypt_des(enc_key, data)
         fields.update(nonce=b64(nonce), iv=b64(nonce), ciphertext=b64(ciphertext))
 
     else:
-        key = derive(password, salt, 32)
-        ciphertext = encrypt_rc4(key, data)
+        enc_key = master_key[:32]
+        ciphertext = encrypt_rc4(enc_key, data)
         fields.update(ciphertext=b64(ciphertext))
+
+    # Authenticated Encryption (Encrypt-then-MAC via HMAC-SHA256)
+    # Menjamin integritas berkas dan mendeteksi kesalahan password saat dekripsi
+    mac_data = (nonce if (algorithm in {"AES", "DES"} and nonce) else b"") + ciphertext
+    mac_tag = hmac.new(mac_key, mac_data, hashlib.sha256).digest()
+    fields["mac"] = b64(mac_tag)
 
     return json.dumps(fields, indent=4)
 
@@ -104,21 +116,56 @@ def decryptbytes(envelope: str | bytes, password: str) -> tuple[bytes, str]:
     if len(salt) != SALT_SIZE:
         raise ValueError("Invalid salt.")
 
+    master_key = derive(password, salt, 64)
+    mac_key = master_key[32:64]
+
+    # 1. Verifikasi Integritas & Validitas Kunci melalui HMAC Tag jika tersedia
+    if "mac" in fields and fields["mac"]:
+        try:
+            expected_mac = unb64(fields["mac"])
+            mac_data = (nonce if (algorithm in {"AES", "DES"} and nonce) else b"") + ciphertext
+            actual_mac = hmac.new(mac_key, mac_data, hashlib.sha256).digest()
+            if not hmac.compare_digest(expected_mac, actual_mac):
+                raise ValueError("Kata sandi salah atau berkas telah dimanipulasi.")
+        except (ValueError, TypeError) as exc:
+            raise ValueError("Kata sandi salah atau berkas telah dimanipulasi.") from exc
+
+    # 2. Dekripsi Ciphertext
     try:
         if algorithm == "AES":
-            key = derive(password, salt, 32)
-            data = decrypt_aes(key, nonce, ciphertext)
+            enc_key = master_key[:32]
+            data = decrypt_aes(enc_key, nonce, ciphertext)
 
         elif algorithm == "DES":
-            key = derive(password, salt, 8)
-            data = decrypt_des(key, nonce, ciphertext)
+            enc_key = master_key[:8]
+            data = decrypt_des(enc_key, nonce, ciphertext)
 
         else:
-            key = derive(password, salt, 32)
-            data = decrypt_rc4(key, ciphertext)
+            enc_key = master_key[:32]
+            data = decrypt_rc4(enc_key, ciphertext)
 
     except ValueError as exc:
-        raise ValueError("Wrong password or corrupted envelope.") from exc
+        raise ValueError("Kata sandi salah atau berkas rusak.") from exc
+
+    # 3. Fallback Heuristik untuk berkas envelope lama yang belum memiliki tag MAC
+    if "mac" not in fields or not fields["mac"]:
+        filename = str(fields.get("name", "")).lower()
+        if filename.endswith((".png", ".jpg", ".jpeg", ".pdf", ".gif", ".zip", ".docx", ".xlsx", ".mp4")):
+            is_valid = False
+            if filename.endswith(".png") and data.startswith(b"\x89PNG\r\n\x1a\n"):
+                is_valid = True
+            elif filename.endswith((".jpg", ".jpeg")) and data.startswith(b"\xff\xd8\xff"):
+                is_valid = True
+            elif filename.endswith(".pdf") and data.startswith(b"%PDF-"):
+                is_valid = True
+            elif filename.endswith(".gif") and data.startswith((b"GIF87a", b"GIF89a")):
+                is_valid = True
+            elif filename.endswith((".zip", ".docx", ".xlsx")) and data.startswith(b"PK\x03\x04"):
+                is_valid = True
+            elif filename.endswith(".mp4") and (b"ftyp" in data[:32] or data.startswith(b"\x00\x00\x00")):
+                is_valid = True
+
+            if not is_valid:
+                raise ValueError("Kata sandi salah atau berkas rusak.")
 
     return data, str(fields.get("name", "data"))
-
