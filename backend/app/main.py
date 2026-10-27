@@ -1,46 +1,51 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from app.models.database import init_db
-from app.routes.auth import router as auth_router
-from app.routes.crypto import router as crypto_router
-from app.routes.admin import router as admin_router
+from fastapi.responses import JSONResponse
+
+from .config import get_settings
+from .crypto.suites import IntegrityError
+from .db import init_db
+from .routers import attachments, auth, me, officer, reports, verifications
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Inisialisasi database SQLite saat server mulai
     init_db()
     yield
 
 
-app = FastAPI(
-    title="CipherVault API",
-    description="REST API for Encrypting, Decrypting, and User Authentication (AES, DES, RC4, PBKDF2)",
-    version="1.0.0",
-    lifespan=lifespan,
-)
+app = FastAPI(title="Lapor Siber API", version="1.0.0", lifespan=lifespan)
 
-# Enable CORS agar antarmuka Frontend diizinkan mengakses API dan membaca response headers
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=get_settings().cors_origins,
+    allow_credentials=False,
     allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["Content-Disposition", "X-Filename", "X-Notes", "X-Category", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type"],
+    expose_headers=["X-Cipher", "X-Integrity", "X-Decrypt-Ms", "Content-Disposition"],
 )
 
-# Daftarkan router Auth, Crypto, & Admin
-app.include_router(auth_router)
-app.include_router(crypto_router)
-app.include_router(admin_router)
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
 
 
-@app.get("/", tags=["Health"])
-def root():
-    return {
-        "status": "online",
-        "service": "CipherVault API",
-        "docs_url": "/docs",
-    }
+@app.exception_handler(IntegrityError)
+async def integrity_error(request: Request, exc: IntegrityError):
+    # Data tidak pernah dikirim bila verifikasi gagal
+    return JSONResponse(status_code=500, content={"detail": f"Verifikasi integritas gagal: {exc}"})
+
+
+for r in (auth.router, me.router, reports.router, attachments.router, officer.router, verifications.router):
+    app.include_router(r)
+
+
+@app.get("/api/health")
+def health():
+    return {"status": "ok"}

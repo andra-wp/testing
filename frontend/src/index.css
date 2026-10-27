@@ -1,152 +1,36 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* Page canvas, default typography and the global focus ring */
-@layer base {
-  body {
-    @apply bg-white text-ink font-sans antialiased;
-    line-height: 1.5;
-  }
-
-  h1, h2, h3, h4 {
-    @apply text-ink-dark font-semibold;
-    line-height: 1.2;
-  }
-
-  /* Accessible focus state: 2px brand outline with 2px offset */
-  :focus-visible {
-    @apply outline outline-2 outline-offset-2 outline-brand;
-  }
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
 }
 
-/* Reusable component styles from DESIGN-huawei-com.md */
-@layer components {
-  /* Standard card: light surface, 16px radius, shadow lifts on hover */
-  .card {
-    @apply bg-surface rounded-card shadow-card p-6 transition-shadow duration-200 ease-standard hover:shadow-hover;
-  }
-
-  /* Card heading row with bottom divider */
-  .card-header {
-    @apply flex items-center justify-between gap-4 pb-4 mb-6 border-b border-line;
-  }
-
-  .card-title {
-    @apply text-2xl font-semibold text-ink-dark;
-  }
-
-  .card-subtitle {
-    @apply mt-1 text-sm text-ink-secondary;
-  }
-
-  /* Square icon tile tinted with the brand color */
-  .icon-box {
-    @apply w-10 h-10 flex-shrink-0 rounded-btn bg-brand/10 text-brand flex items-center justify-center;
-  }
-
-  /* Primary CTA: brand red, white text */
-  .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 min-h-11 px-6 py-2.5 rounded-btn bg-brand text-white text-sm transition-colors duration-200 ease-standard hover:bg-brand-hover active:bg-brand-hover disabled:bg-brand-disabled disabled:opacity-70 disabled:cursor-not-allowed;
-  }
-
-  /* Secondary action: transparent with dark outline, turns red on hover */
-  .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 min-h-11 px-6 py-2.5 rounded-btn border border-ink bg-transparent text-ink text-sm transition-colors duration-200 ease-standard hover:bg-ink-dark/5 hover:border-brand hover:text-brand disabled:text-ink-disabled disabled:border-ink-disabled disabled:cursor-not-allowed;
-  }
-
-  /* Ghost button: text only, red on hover */
-  .btn-ghost {
-    @apply inline-flex items-center gap-1 px-3 py-2 rounded-btn text-sm text-ink transition-colors duration-200 ease-standard hover:text-brand active:text-brand-hover disabled:text-ink-disabled disabled:cursor-not-allowed;
-  }
-
-  /* Text input, select and textarea */
-  .input {
-    @apply w-full px-3 py-2 rounded-input border border-line bg-white text-base text-ink placeholder:text-ink-placeholder transition-colors duration-200 ease-standard focus:border-brand disabled:bg-surface disabled:text-ink-disabled;
-  }
-
-  .label {
-    @apply block mb-1 text-sm text-ink;
-  }
-
-  /* Helper text under a field */
-  .hint {
-    @apply mt-1 text-xs text-ink-muted;
-  }
-
-  /* Inline status messages */
-  .alert {
-    @apply flex items-start gap-2 p-3 rounded-btn border text-sm;
-  }
-
-  .alert-error {
-    @apply border-brand/20 bg-brand/5 text-brand;
-  }
-
-  /* The reference has no success color; a muted green keeps it distinct from errors */
-  .alert-success {
-    @apply border-green-700/20 bg-green-50 text-green-800;
-  }
-
-  /* Small pill for tags and metadata */
-  .chip {
-    @apply inline-flex items-center px-2 py-1 rounded-full border border-line bg-white text-xs text-ink-secondary;
-  }
-
-  /* White block inside a card: tables, previews, output */
-  .panel {
-    @apply rounded-btn border border-line bg-white;
-  }
-
-  /* Dashed file picker */
-  .dropzone {
-    @apply flex items-center gap-3 p-3 rounded-input border border-dashed border-line bg-white cursor-pointer transition-colors duration-200 ease-standard hover:border-brand;
-  }
-
-  /* Empty-state placeholder inside a card */
-  .empty-state {
-    @apply flex-1 flex flex-col items-center justify-center text-center p-8 rounded-btn border border-dashed border-line bg-white;
-  }
-
-  /* Tab link in nav-link style: red and bold when active */
-  .tab {
-    @apply inline-flex items-center gap-2 px-3 py-3 -mb-px border-b-2 border-transparent text-sm text-ink whitespace-nowrap transition-colors duration-200 ease-standard hover:text-brand;
-  }
-
-  .tab-active {
-    @apply border-brand text-brand font-semibold;
-  }
+/* Kelas komponen kecil yang dipakai berulang (Tailwind v4: @utility bisa di-@apply) */
+@utility card {
+  @apply rounded-xl border border-slate-200 bg-white shadow-sm;
 }
-
-/* Light minimal scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+@utility input {
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none;
 }
-::-webkit-scrollbar-track {
-  background: #ffffff;
+@utility label {
+  @apply mb-1 block text-sm font-medium text-slate-700;
 }
-::-webkit-scrollbar-thumb {
-  background: #e6e6e6;
-  border-radius: 9999px;
+@utility btn {
+  @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: #aeaeae;
+@utility btn-primary {
+  @apply btn bg-brand-700 text-white hover:bg-brand-800;
 }
-
-/* Page & tab fade-in transition */
-@keyframes fadeInPage {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
+@utility btn-secondary {
+  @apply btn border border-slate-300 bg-white text-slate-700 hover:bg-slate-50;
 }
-
-.animate-fade-in {
-  animation: fadeInPage 0.45s cubic-bezier(0.25, 1, 0.5, 1) both;
-  will-change: opacity, transform;
+@utility btn-danger {
+  @apply btn bg-red-600 text-white hover:bg-red-700;
+}
+@utility btn-sm {
+  @apply px-3 py-1.5 text-xs;
 }
