@@ -16,8 +16,7 @@
 
   /* Accessible focus state: 2px brand outline with 2px offset */
   :focus-visible {
-    outline: 2px solid theme("colors.brand.DEFAULT");
-    outline-offset: 2px;
+    @apply outline outline-2 outline-offset-2 outline-brand;
   }
 }
 
